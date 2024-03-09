@@ -5,8 +5,7 @@ from datetime import datetime
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
-cred = credentials.Certificate(
-    "esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+cred = credentials.Certificate("../esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
