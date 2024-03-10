@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 import firebase_admin
+from os import environ
 from firebase_admin import firestore, credentials
 from datetime import datetime
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
-cred = credentials.Certificate("../esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+# cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+cred = credentials.Certificate(environ.get('cred'))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -120,4 +122,4 @@ def create_review(event_id):
         ), 500
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
