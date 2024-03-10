@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 import firebase_admin
+from os import environ
 from firebase_admin import firestore, credentials
 from datetime import datetime
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
-cred = credentials.Certificate("../esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+# cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+cred = credentials.Certificate(environ.get('cred'))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -29,7 +31,7 @@ def get_event_refunds(event_id):
         404:
             description: No refunds for this event found.
     """
-    refunds_ref = db.collection("reviews").document(event_id).collection("event_refunds")
+    refunds_ref = db.collection("refunds").document(event_id).collection("event_refunds")
     docs = refunds_ref.stream()
 
     refunds = []
@@ -72,6 +74,9 @@ def create_refund(event_id):
                         ticket_id: 
                             type: number
                             description: ID of the ticket to be refunded
+                        refund_status:
+                            type: string
+                            description: Status of the refund request
     responses:
         201:
             description: Refund request created successfully
@@ -81,7 +86,7 @@ def create_refund(event_id):
             description: Internal server error
     """
     try:
-        required_fields = ['user_id', 'ticket_id']
+        required_fields = ['user_id', 'ticket_id', 'refund_status']
         if not all(field in request.json for field in required_fields):
             return jsonify(
                 {
@@ -96,7 +101,8 @@ def create_refund(event_id):
             'user_id': request.json['user_id'],
             'created_at': formatted_time,
             'event_id': event_id,
-            'ticket_id': request.json['ticket_id']
+            'ticket_id': request.json['ticket_id'],
+            'refund_status': request.json['refund_status']
         })
 
         return jsonify(
