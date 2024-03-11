@@ -1,13 +1,11 @@
 from flask import Flask, request, jsonify
 import firebase_admin
-from os import environ
 from firebase_admin import firestore, credentials
 from datetime import datetime
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
-# cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
-cred = credentials.Certificate(environ.get('cred'))
+cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -15,6 +13,7 @@ db = firestore.client()
 now = datetime.now()
 formatted_time = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+# Endpoints
 @app.route("/reviews/<string:event_id>", methods=['GET'])
 def get_event_reviews(event_id):
     """
@@ -117,9 +116,9 @@ def create_review(event_id):
         return jsonify(
             {
                 "code": 500,
-                "message": "An error occurred. Please try again."
+                "message": "An error occurred while creating the review. " + str(e)
             }
         ), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
