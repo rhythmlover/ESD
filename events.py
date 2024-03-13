@@ -23,17 +23,18 @@ class event(db.Model):
     event_id = db.Column(db.String, primary_key=True) 
     event_name = db.Column(db.String(64), nullable=False)
     event_price = db.Column(db.Float(precision=2), nullable=False)
-    date = db.Column(db.DateTime, nullable=False) #may need to check datatype for this
+    event_datetime = db.Column(db.DateTime, nullable=False) #may need to check datatype for this
 
     #Specify the properties of a event when it is created
-    def __init__(self, event_id, title, price):
+    def __init__(self, event_id, event_name, event_price, event_datetime):
         self.event_id = event_id
-        self.title = title
-        self.price = price
+        self.event_name = event_name
+        self.event_price = event_price
+        self.event_datetime = event_datetime
 
     #Represent our event object as a JSON string
     def json(self):
-        return {"event_id": self.event_id, "title": self.title, "price": self.price}
+        return {"event_id": self.event_id, "event_name": self.event_name, "event_price": self.event_price, "event_datetime": self.event_datetime}
 
 
 
@@ -106,7 +107,7 @@ def create_event(event_id):
                 "data": {
                     "event_id": event_id
                 },
-                "message": "event already exists."
+                "message": "Event already exists."
             }
         ), 400
     
