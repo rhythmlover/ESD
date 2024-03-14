@@ -14,15 +14,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 #We create a new class event, which inherits from a basic database model, provided by SQLAlchemy.
-class event(db.Model):
+class Event(db.Model):
     #Specify the table name as event 
     __tablename__ = 'event'
 
     #define data column name, type and if it is nullable (able to not enter input)
     #add (number) after db.String to limit the length
-    event_id = db.Column(db.varchar(64), primary_key=True) 
-    event_name = db.Column(db.varchar(64), nullable=False)
+    event_id = db.Column(db.String(64), primary_key=True) 
+    event_name = db.Column(db.String(64), nullable=False)
     event_price = db.Column(db.Float(precision=2), nullable=False)
+    #YYYYMMDDHHMMSS
     event_datetime = db.Column(db.DateTime, nullable=False) #may need to check datatype for this
 
     #Specify the properties of a event when it is created
@@ -30,6 +31,7 @@ class event(db.Model):
         self.event_id = event_id
         self.event_name = event_name
         self.event_price = event_price
+        #YYYYMMDDHHMMSS
         self.event_datetime = event_datetime
 
     #Represent our event object as a JSON string
@@ -43,7 +45,7 @@ class event(db.Model):
 @app.route("/event")
 def get_all():
     #SQLAlchemy provides a session.scalars attribute to retrieve all records from the book table using db.select(Book).all(); this returns a list, which we assign to booklist
-    eventlist = db.session.scalars(db.select(event)).all()
+    eventlist = db.session.scalars(db.select(Event)).all()
 
     if len(eventlist):
         return jsonify(
@@ -67,7 +69,7 @@ def get_all():
 def find_by_event_id(event_id):
     #Retrieve only the event with the event_id specified in the path variable, similar to the WHERE clause in a SQL SELECT expression
     event = db.session.scalars(
-    	db.select(event).filter_by(event_id = event_id).
+    	db.select(Event).filter_by(event_id=event_id).
     	limit(1)
         ).first()
     #Use first() to return 1 event or None if there is no matching events. This is similar to the LIMIT 1 clause in SQL
@@ -96,7 +98,7 @@ def find_by_event_id(event_id):
 def create_event(event_id):
     #check if the event already exists in the table
     if (db.session.scalars(
-    	db.select(event).filter_by(event_id = event_id).
+    	db.select(Event).filter_by(event_id=event_id).
     	limit(1)
         ).first()
         ):
@@ -115,10 +117,11 @@ def create_event(event_id):
     data = request.get_json()
     #Then we create an instance of a event using the event_id and the attributes sent in the request (**data)
     #** is a common idiom to allow an arbitrary number of arguments to a function
-    event = event(event_id, **data)
+    event = Event(event_id, **data)
 
     try:
         #To add the event to the table and commit the changes, we use the db.session object (provided by SQLAlchemy) 
+        #YYYYMMDDHHMMSS
         db.session.add(event)
         db.session.commit()
     except:
