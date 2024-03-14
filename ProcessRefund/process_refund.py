@@ -121,6 +121,13 @@ def createRefund(refund):
         channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
             body=message)
         
+        # Return success FOR NOW
+        return {
+            "code": 201,
+            "data": {"refund_result": refund_result},
+            "message": "Refund request created successfully."
+        }
+        
     print("\Refund published to RabbitMQ Exchange.\n")
     # - reply from the invocation is not used;
     # continue even if this invocation fails
@@ -211,3 +218,17 @@ def updateRefund(refund):
         print("\Refund published to RabbitMQ Exchange.\n")
         # - reply from the invocation is not used;
         # continue even if this invocation fails
+
+
+
+# Execute this program if it is run as a main script (not by 'import')
+if __name__ == "__main__":
+    print("This is flask " + os.path.basename(__file__) + " for processing a refund...")
+    app.run(host="0.0.0.0", port=5100, debug=True)
+    # Notes for the parameters: 
+    # - debug=True will reload the program automatically if a change is detected;
+    #   -- it in fact starts two instances of the same flask program, and uses one of the instances to monitor the program changes;
+    # - host="0.0.0.0" allows the flask program to accept requests sent from any IP/host (in addition to localhost),
+    #   -- i.e., it gives permissions to hosts with any IP to access the flask program,
+    #   -- as long as the hosts can already reach the machine running the flask program along the network;
+    #   -- it doesn't mean to use http://0.0.0.0 to access the flask program.
