@@ -4,7 +4,7 @@ from os import environ
 
 hostname = "localhost" # default hostname
 port = 5672            # default port
-exchangename = "email_topic" # exchange name
+exchangename = "refund_topic" # exchange name
 exchangetype = "topic" # - use a 'topic' exchange to enable interaction
 
 # Instead of hardcoding the values, we can also get them from the environ as shown below
@@ -65,8 +65,8 @@ def create_queues(channel):
 
 # function to create Activity_Log queue  
 def create_email_log_queue(channel):
-    print('amqp_setup:create_email_log_queue')
-    a_queue_name = 'Email_Log'
+    print('amqp_setup:create_refund_log_queue')
+    a_queue_name = 'Refund_Log'
     channel.queue_declare(queue=a_queue_name, durable=True) # 'durable' makes the queue survive broker restarts
     channel.queue_bind(exchange=exchangename, queue=a_queue_name, routing_key='#')
         # bind the queue to the exchange via the key
@@ -88,5 +88,3 @@ if __name__ == "__main__":  # execute this program only if it is run as a script
     connection = create_connection()
     channel = create_channel(connection)
     create_queues(channel)
-    
-    
