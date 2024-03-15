@@ -1,7 +1,5 @@
 from flask import Flask, request, jsonify
 import os
-import barcode
-from barcode.writer import ImageWriter
 import emailjs
 import requests
 

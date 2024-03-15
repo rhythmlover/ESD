@@ -52,7 +52,7 @@ class Ticket(db.Model):
             'seat_location': self.seat_location,
             'payment_id': self.payment_id,
             'status': self.status,
-            'qr_code': self.qr_code,
+            'bar_code': self.bar_code,
             'creation_date': self.creation_date.isoformat(),
             'valid_till': self.valid_till.isoformat() if self.valid_till else None
         }
@@ -105,7 +105,7 @@ def create_ticket():
 
     barcode_path = generate_barcode(barcode_data)
     if barcode_path:
-        ticket.qr_code = barcode_path
+        ticket.bar_code = barcode_path  # Ensure this matches the model field name
     else:
         return jsonify({"code": 500, "message": "Failed to generate barcode."}), 500
 

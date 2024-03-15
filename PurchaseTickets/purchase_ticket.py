@@ -87,10 +87,10 @@ def purchase_ticket():
     }), 400
 
 def get_user_data(user_id):
-    # Call the user microservice to retrieve user data
-    user_response = requests.get(f"{user_URL}/{user_id}")
-    if user_response.status_code == 200:
-        return user_response.json()
+    # Consistently use invoke_http for making HTTP requests
+    user_response = invoke_http(f"{user_URL}/{user_id}", method='GET')
+    if user_response.get("code") == 200:
+        return user_response.get("data")
     else:
         return None
 
