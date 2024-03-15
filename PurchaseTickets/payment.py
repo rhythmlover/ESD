@@ -9,9 +9,6 @@ def process_payment():
         try:
             payment_data = request.get_json()
             print("\nReceived a payment request:", payment_data)
-
-            # Code to process payment
-            # Example: integrate with Stripe API to process payments
             
             return jsonify({"code": 200, "message": "Payment processed successfully."}), 200
 
