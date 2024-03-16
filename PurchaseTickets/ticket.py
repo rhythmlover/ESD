@@ -6,6 +6,7 @@ from dateutil import parser as date_parser
 import json
 import barcode
 from barcode.writer import ImageWriter
+import uuid
 
 app = Flask(__name__)
 
@@ -17,7 +18,6 @@ db = SQLAlchemy(app)
 
 def generate_barcode(barcode_data):
     try:
-        # Generate barcode image
         code128 = barcode.get_barcode_class('code128')
         barcode_instance = code128(barcode_data, writer=ImageWriter())
         barcode_path = os.path.join('barcode_images', f'{barcode_data}.png')
@@ -27,7 +27,6 @@ def generate_barcode(barcode_data):
         print("Error generating barcode:", str(e))
         return None
 
-# Database Models
 class Ticket(db.Model):
     __tablename__ = 'ticket'
     ticket_id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +37,7 @@ class Ticket(db.Model):
     seat_location = db.Column(db.String(100))
     payment_id = db.Column(db.String(50))
     status = db.Column(db.String(20), default='Available')
-    bar_code = db.Column(db.Text)
+    # bar_code = db.Column(db.Text)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     valid_till = db.Column(db.DateTime)
 
@@ -52,12 +51,11 @@ class Ticket(db.Model):
             'seat_location': self.seat_location,
             'payment_id': self.payment_id,
             'status': self.status,
-            'bar_code': self.bar_code,
+            # 'bar_code': self.bar_code,
             'creation_date': self.creation_date.isoformat(),
             'valid_till': self.valid_till.isoformat() if self.valid_till else None
         }
 
-# Routes
 @app.route("/tickets", methods=['GET'])
 def get_all_tickets():
     ticketlist = db.session.scalars(db.select(Ticket)).all()
@@ -99,15 +97,34 @@ def find_ticket_by_id(ticket_id):
 
 @app.route("/tickets", methods=['POST'])
 def create_ticket():
-    user_id = request.json.get('user_id', None)
-    barcode_data = str(uuid.uuid4())
-    ticket = Ticket(user_id=user_id, status='NEW')
+    data = request.get_json()
+    user_id = data.get('user_id', None)
+    event_id = data.get('event_id', None)
+    ticket_type = data.get('ticket_type', None)
+    date_time = data.get('date_time', None)
+    seat_location = data.get('seat_location', None)
+    payment_id = data.get('payment_id', None)
+    status = data.get('status', 'NEW')
 
-    barcode_path = generate_barcode(barcode_data)
-    if barcode_path:
-        ticket.bar_code = barcode_path  # Ensure this matches the model field name
-    else:
-        return jsonify({"code": 500, "message": "Failed to generate barcode."}), 500
+    if date_time:
+        date_time = date_parser.parse(date_time)
+
+    # Create new ticket instance
+    ticket = Ticket(
+        user_id=user_id,
+        event_id=event_id,
+        ticket_type=ticket_type,
+        date_time=date_time,
+        seat_location=seat_location,
+        payment_id=payment_id,
+        status=status,
+        # barcode generation is disabled
+    )
+    # barcode_path = generate_barcode(barcode_data)
+    # if barcode_path:
+    #     ticket.bar_code = barcode_path  # Ensure this matches the model field name
+    # else:
+    #     return jsonify({"code": 500, "message": "Failed to generate barcode."}), 500
 
     try:
         db.session.add(ticket)
@@ -120,7 +137,7 @@ def create_ticket():
             }
         ), 500
     
-    print(json.dumps(ticket.json(), default=str)) # convert a JSON object to a string and print
+    print(json.dumps(ticket.json(), default=str))
     print()
 
     return jsonify(
@@ -145,17 +162,22 @@ def update_ticket(ticket_id):
                 }
             ), 404
 
-        # update status
-        data = request.get_json()
-        if data['status']:
-            ticket.status = data['status']
-            db.session.commit()
-            return jsonify(
-                {
-                    "code": 200,
-                    "data": ticket.json()
-                }
-            ), 200
+        update_fields = request.get_json()
+        valid_fields = ['status', 'payment_id', 'user_id']
+
+        for field in valid_fields:
+            if field in update_fields:
+                setattr(ticket, field, update_fields[field])
+        
+        db.session.commit()
+
+        return jsonify(
+            {
+                "code": 200,
+                "data": ticket.json()
+            }
+        ), 200
+
     except Exception as e:
         return jsonify(
             {

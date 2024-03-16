@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `ticket` (
   `seat_location` varchar(100) DEFAULT NULL,
   `payment_id` varchar(50) DEFAULT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'Available',
-  `qr_code` text,
+  -- `qr_code` text,
   `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `valid_till` datetime DEFAULT NULL,
   PRIMARY KEY (`ticket_id`)

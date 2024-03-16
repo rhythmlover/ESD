@@ -1,19 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os, sys
-import requests
 from invokes import invoke_http
-import pika
 import json
 import amqp_connection
 
 app = Flask(__name__)
 CORS(app)
 
-# Replace these URLs with the actual URLs of your microservices
-ticket_URL = "http://localhost:5001/ticket"
-payment_URL = "http://localhost:5002/payment"
-email_URL = "http://localhost:5003/email"
+ticket_URL = "http://localhost:5001/tickets"
+payment_URL = "http://localhost:5002/process_payment"
+email_URL = "http://localhost:5003/sendEmail"
 user_URL = "http://localhost:5004/user"
 
 exchangename = "ticket_topic"
@@ -30,46 +27,55 @@ if not amqp_connection.check_exchange(channel, exchangename, exchangetype):
 def purchase_ticket():
     if request.is_json:
         try:
-            ticket = request.get_json()
-            print("\nReceived a ticket purchase request:", ticket)
+            ticket_request = request.get_json()
+            ticket_request = request.get_json()
+            user_id = ticket_request.get('user_id')
+            event_id = ticket_request.get('event_id')
+            ticket_type = ticket_request.get('ticket_type')
+            date_time = ticket_request.get('date_time')
+            seat_location = ticket_request.get('seat_location')
 
-
-            user_id = ticket.get('user_id')
-            user_data = get_user_data(user_id)
-            if not user_data:
+            # Step 1: Fetch user details
+            user_response = get_user_data(user_id)
+            if not user_response:
                 return jsonify({"code": 404, "message": "User not found."}), 404
+
+            # Step 2: Create Ticket
+            ticket_response = invoke_http(ticket_URL, method='POST', json=ticket_request)
+            if ticket_response["code"] not in range(200, 300):
+                return jsonify(ticket_response), ticket_response["code"]
+
+            # Step 3: Process Payment
+            payment_response = invoke_http(payment_URL, method='POST', json={
+                "user_id": user_id,
+                "ticket_id": ticket_response["data"]["ticket_id"],
+                "amount": ticket_request.get('data', {}).get('amount'),
+                "currency": "usd",
+                "payment_method_id": "pm_1OuxTr2LHSKllIVV0edx7rsn" 
+            })
+            if payment_response["code"] == 200:
+                payment_id = payment_response["data"]["payment_id"]
+
+                ticket_update_data = {
+                    "payment_id": payment_id
+                }
+                update_response = invoke_http(f"{ticket_URL}/order/{ticket_response['data']['ticket_id']}", method='PUT', json=ticket_update_data)
+                
+                if update_response["code"] not in range(200, 300):
+                    return jsonify(update_response), update_response["code"]
+            else:
+                return jsonify(payment_response), payment_response["code"]    
+
+            # Step 5: Send Notification
+            email_response = invoke_http(email_URL, method='POST', json={
+                "email": user_response["email"],
+                "message": "Your ticket has been successfully purchased.",
+                "ticket_details": ticket_response["data"],
+                "payment_details": payment_response["data"]
+            })
+            if email_response["code"] not in range(200, 300):
+                return jsonify(email_response), email_response["code"]
             
-            # Invoke ticket service to create ticket
-            ticket_result = invoke_http(ticket_URL, method='POST', json=ticket)
-
-            # Check if ticket creation was successful
-            if ticket_result["code"] != 201:
-                return jsonify(ticket_result), ticket_result["code"]
-
-            # Proceed to payment
-            payment_data = {
-                "user_id": ticket.get("user_id"),
-                "ticket_id": ticket_result["data"]["ticket_id"],
-                # Include other payment details here if needed
-            }
-            payment_result = invoke_http(payment_URL, method='POST', json=payment_data)
-
-            # Check if payment was successful
-            if payment_result["code"] != 200:
-                return jsonify(payment_result), payment_result["code"]
-
-            # Proceed to notification
-            email_data = {
-                "email": ticket.get("email"),  # Assuming email is part of ticket data
-                "message": "Ticket purchased successfully!",
-                "barcode_image": ticket_result["data"]["barcode_image"]  # Assuming barcode image is returned from ticket creation
-                # Add other relevant data for notification here
-            }
-            email_result = invoke_http(email_URL, method='POST', json=email_data)
-
-            # Return final result
-            return jsonify(email_result), email_result["code"]
-
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -87,7 +93,6 @@ def purchase_ticket():
     }), 400
 
 def get_user_data(user_id):
-    # Consistently use invoke_http for making HTTP requests
     user_response = invoke_http(f"{user_URL}/{user_id}", method='GET')
     if user_response.get("code") == 200:
         return user_response.get("data")

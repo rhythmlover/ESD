@@ -1,0 +1,115 @@
+{
+    "info": {
+      "_postman_id": "unique_id_for_your_collection",
+      "name": "Ticket System Testing",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "User - Get user information",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5004/user/1",
+            "host": ["localhost"],
+            "port": "5004",
+            "path": ["user", "1"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Ticket - Create a ticket",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"1\", \"event_id\": 1, \"ticket_type\": \"General Admission\", \"date_time\": \"2024-03-20T19:00:00\", \"seat_location\": \"A1\", \"status\": \"NEW\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5001/tickets",
+            "host": ["localhost"],
+            "port": "5001",
+            "path": ["tickets"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Payment - Process payment",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"1\", \"ticket_id\": 123, \"amount\": 10000, \"currency\": \"usd\", \"payment_method_id\": \"pm_card_visa\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5002/process_payment",
+            "host": ["localhost"],
+            "port": "5002",
+            "path": ["process_payment"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Email - Send confirmation email",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"user@example.com\", \"subject\": \"Ticket Purchase Confirmation\", \"message\": \"Congratulations! Your ticket purchase was successful.\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5003/send_email",
+            "host": ["localhost"],
+            "port": "5003",
+            "path": ["send_email"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Purchase Ticket - Complete Process",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"1\", \"event_id\": 1, \"email\": \"user@example.com\", \"ticket_type\": \"VIP\", \"date_time\": \"2024-03-25T20:00:00\", \"seat_location\": \"V1\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5100/purchase_ticket",
+            "host": ["localhost"],
+            "port": "5100",
+            "path": ["purchase_ticket"]
+          }
+        },
+        "response": []
+      }
+    ]
+  }  
