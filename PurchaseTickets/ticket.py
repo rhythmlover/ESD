@@ -4,8 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dateutil import parser as date_parser
 import json
-import barcode
-from barcode.writer import ImageWriter
+import pyqrcode
 import uuid
 
 app = Flask(__name__)
@@ -16,15 +15,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 db = SQLAlchemy(app)
 
-def generate_barcode(barcode_data):
+def generate_qr_code(qr_data):
     try:
-        code128 = barcode.get_barcode_class('code128')
-        barcode_instance = code128(barcode_data, writer=ImageWriter())
-        barcode_path = os.path.join('barcode_images', f'{barcode_data}.png')
-        barcode_instance.save(barcode_path)
-        return barcode_path
+        qr = pyqrcode.create(qr_data)
+        qr_path = os.path.join('qr_codes', f'{qr_data}.png')
+        qr.png(qr_path, scale=8)
+        return qr_path
     except Exception as e:
-        print("Error generating barcode:", str(e))
+        print("Error generating QR code:", str(e))
         return None
 
 class Ticket(db.Model):
@@ -37,7 +35,7 @@ class Ticket(db.Model):
     seat_location = db.Column(db.String(100))
     payment_id = db.Column(db.String(50))
     status = db.Column(db.String(20), default='Available')
-    # bar_code = db.Column(db.Text)
+    qr_code = db.Column(db.String(255), nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     valid_till = db.Column(db.DateTime)
 
@@ -51,7 +49,7 @@ class Ticket(db.Model):
             'seat_location': self.seat_location,
             'payment_id': self.payment_id,
             'status': self.status,
-            # 'bar_code': self.bar_code,
+            'qr_code': self.qr_code,
             'creation_date': self.creation_date.isoformat(),
             'valid_till': self.valid_till.isoformat() if self.valid_till else None
         }
@@ -109,22 +107,26 @@ def create_ticket():
     if date_time:
         date_time = date_parser.parse(date_time)
 
-    # Create new ticket instance
-    ticket = Ticket(
-        user_id=user_id,
-        event_id=event_id,
-        ticket_type=ticket_type,
-        date_time=date_time,
-        seat_location=seat_location,
-        payment_id=payment_id,
-        status=status,
-        # barcode generation is disabled
-    )
-    # barcode_path = generate_barcode(barcode_data)
-    # if barcode_path:
-    #     ticket.bar_code = barcode_path  # Ensure this matches the model field name
-    # else:
-    #     return jsonify({"code": 500, "message": "Failed to generate barcode."}), 500
+    qr_data = str(uuid.uuid4())  # Generate unique data for QR code
+    qr_code_path = generate_qr_code(qr_data)
+
+    if qr_code_path:
+        ticket = Ticket(
+            user_id=user_id,
+            event_id=event_id,
+            ticket_type=ticket_type,
+            date_time=date_time,
+            seat_location=seat_location,
+            payment_id=payment_id,
+            status=status,
+            qr_code=qr_code_path
+        )
+    else:
+        return jsonify(
+            {"code": 500,
+             "message": "Failed to generate QR code."
+             }
+            ), 500
 
     try:
         db.session.add(ticket)
