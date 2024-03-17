@@ -30,9 +30,8 @@ def event_attendance(event_id):
             description: No attendance found for event
 
     """
-    event_attendance_ref = db.collection(
-        "event_attendance").document(event_id).collection("users")
-    docs = event_attendance_ref.stream()
+    doc_ref = db.collection("event_attendance").document(event_id).collection("users")
+    docs = doc_ref.stream()
 
     attendance_for_event = []
     for doc in docs:
@@ -134,11 +133,11 @@ def get_user_event_attendance_history(user_id):
             description: user not found
 
     """
-    event_attendance_ref = db.collection("users_event_attendance").document(user_id)
-    doc = event_attendance_ref.get()
+    docs_ref = db.collection("users_event_attendance").document(user_id)
+    docs = docs_ref.get()
 
-    if doc.exists:
-        data = doc.to_dict()
+    if docs.exists:
+        data = docs.to_dict()
         return jsonify(
             {
                 "code": 200,
@@ -193,8 +192,8 @@ def add_event_to_user_event_history(user_id):
             ), 400
 
         doc_ref = db.collection("users_event_attendance").document(user_id)
-
         doc = doc_ref.get()
+
         if doc.exists:
             doc_ref.update({"events_attended": firestore.ArrayUnion([request.json['event_id']])})
         else:

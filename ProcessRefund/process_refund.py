@@ -14,7 +14,7 @@ app = Flask(__name__)
 CORS(app)
 
 refund_URL = "http://localhost:5001/refunds"
-refund_payment_URL = "http://localhost:5002/submit_refund"
+payment_URL = "http://localhost:5002/submit_refund"
 email_URL = "http://localhost:5003/send_email"
 
 # Using RabbitMQ as the message broker
