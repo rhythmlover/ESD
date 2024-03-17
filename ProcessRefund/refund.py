@@ -52,8 +52,8 @@ def get_event_refunds(event_id):
     ), 404
 
 
-@app.route("/refunds/<string:event_id>", methods=['POST'])
-def create_refund(event_id):
+@app.route("/refunds", methods=['POST'])
+def create_refund():
     """
     Create a refund request for a specific event.
     ---
@@ -74,7 +74,7 @@ def create_refund(event_id):
                         ticket_id: 
                             type: number
                             description: ID of the ticket to be refunded
-                        refund_status:
+                        refund_status: (auto-generated)
                             type: string
                             description: Status of the refund request
     responses:
@@ -86,7 +86,7 @@ def create_refund(event_id):
             description: Internal server error
     """
     try:
-        required_fields = ['user_id', 'ticket_id', 'refund_status']
+        required_fields = ['user_id', 'event_id', 'ticket_id']
         if not all(field in request.json for field in required_fields):
             return jsonify(
                 {
@@ -96,13 +96,13 @@ def create_refund(event_id):
             ), 400
 
         doc_ref = db.collection("refunds").document(
-            event_id).collection("event_refunds").document(request.json['ticket_id'])
+            request.json['event_id']).collection("event_refunds").document(request.json['ticket_id'])
         doc_ref.set({
             'user_id': request.json['user_id'],
             'created_at': formatted_time,
-            'event_id': event_id,
+            'event_id': request.json['event_id'],
             'ticket_id': request.json['ticket_id'],
-            'refund_status': request.json['refund_status']
+            'refund_status': "pending"
         })
 
         return jsonify(
@@ -120,8 +120,8 @@ def create_refund(event_id):
         ), 500
 
 
-@app.route("/refunds/<string:event_id>/<string:ticket_id>", methods=["PUT"])
-def update_book(event_id, ticket_id):
+@app.route("/refunds", methods=["PUT"])
+def update_book():
     """
     Update a refund status for a specific ticket.
     ---
@@ -148,17 +148,17 @@ def update_book(event_id, ticket_id):
         404:
             description: Missing required fields in body
     """
-    required_fields = ['refund_status']
+    required_fields = ['event_id', 'ticket_id','refund_status']
     if not all(field in request.json for field in required_fields):
         return jsonify(
             {
                 "code": 404,
-                "message": "Missing required fields. Please provide refund_status."
+                "message": "Missing required fields. Please provide event_id, ticket_id, refund_status."
             }
         ), 404
 
     doc_ref = db.collection("refunds").document(
-        event_id).collection("event_refunds").document(ticket_id)
+        request.json['event_id']).collection("event_refunds").document(request.json['ticket_id'])
     doc_ref.update({
         'refund_status': request.json['refund_status']
     })
@@ -166,10 +166,11 @@ def update_book(event_id, ticket_id):
     return jsonify(
         {
             "code": 200,
-            "message": "Refund request status of ticket ID: "+ ticket_id + " changed to " + request.json['refund_status'] + " successfully."
+            "refund_status": request.json['refund_status'],
+            "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully."
         }
     ), 200
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
