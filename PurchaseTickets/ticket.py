@@ -1,196 +1,291 @@
-import os
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+import firebase_admin
+from firebase_admin import firestore, credentials
 from datetime import datetime
-from dateutil import parser as date_parser
-import json
-import pyqrcode
-import uuid
 
+# Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
+cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-# Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost:3306/ticket'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
-db = SQLAlchemy(app)
+# Global variables
+now = datetime.now()
+formatted_time = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-def generate_qr_code(qr_data):
-    try:
-        qr = pyqrcode.create(qr_data)
-        qr_path = os.path.join('qr_codes', f'{qr_data}.png')
-        qr.png(qr_path, scale=8)
-        return qr_path
-    except Exception as e:
-        print("Error generating QR code:", str(e))
-        return None
-
-class Ticket(db.Model):
-    __tablename__ = 'ticket'
-    ticket_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(32), nullable=False)
-    event_id = db.Column(db.Integer, nullable=False)
-    ticket_type = db.Column(db.String(50), nullable=False)
-    date_time = db.Column(db.DateTime, nullable=False)
-    payment_id = db.Column(db.String(50))
-    status = db.Column(db.String(20), default='Not Redeemed')
-    qr_code = db.Column(db.String(255), nullable=False)
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
-    age_verified = db.Column(db.Boolean, default=False)
-    valid_till = db.Column(db.DateTime)
-
-    def json(self):
-        return {
-            'ticket_id': self.ticket_id,
-            'user_id': self.user_id,
-            'event_id': self.event_id,
-            'ticket_type': self.ticket_type,
-            'date_time': self.date_time.isoformat(),
-            'payment_id': self.payment_id,
-            'status': self.status,
-            'qr_code': self.qr_code,
-            'creation_date': self.creation_date.isoformat(),
-            'age_verified':self.age_verified,
-            'valid_till': self.valid_till.isoformat() if self.valid_till else None
-        }
-
+# Endpoints
 @app.route("/tickets", methods=['GET'])
 def get_all_tickets():
-    ticketlist = db.session.scalars(db.select(Ticket)).all()
-    if len(ticketlist):
+    """
+    Retrieves account details of a specific user.
+    ---
+    responses:
+        200:
+            description: Return all tickets
+        404:
+            description: No tickets found.
+    """
+    users_ref = db.collection("tickets")
+    ticketlist = users_ref.stream()
+    
+    data = []
+    for ticket in ticketlist:
+        data.append(ticket.to_dict())
+
+    if len(data):
         return jsonify(
             {
                 "code": 200,
-                "data": {
-                    "tickets": [ticket.json() for ticket in ticketlist]
-                }
+                "data": data
             }
         )
     return jsonify(
         {
             "code": 404,
-            "message": "There are no tickets."
+            "message": "No tickets found."
         }
     ), 404
 
-@app.route("/tickets/<int:ticket_id>", methods=['GET'])
-def find_ticket_by_id(ticket_id):
-    ticket = db.session.scalars(db.select(Ticket).filter_by(ticket_id=ticket_id).limit(1)).first()
-    if ticket:
+@app.route("/tickets/<string:ticket_id>", methods=['GET'])
+def get_specific_ticket(ticket_id):
+    """
+    Retrieves ticket details of a specific ticket id
+    ---
+    responses:
+        200:
+            description: Return the ticket details of the ticket with the specified ticket_id
+        404:
+            description: No ticket with the specified ticket_id found.
+    """
+    users_ref = db.collection("tickets").document(ticket_id)
+    ticket_details = users_ref.get()
+
+    if ticket_details.exists:
+        data = ticket_details.to_dict()
         return jsonify(
             {
                 "code": 200,
-                "data": ticket.json()
+                "data": data
             }
         )
     return jsonify(
         {
             "code": 404,
-            "data": {
-                "ticket_id": ticket_id
-            },
-            "message": "Order not found."
+            "message": "No ticket with the specified ticket_id found"
         }
     ), 404
 
-@app.route("/tickets", methods=['POST'])
+@app.route("/tickets/create", methods=['POST'])
 def create_ticket():
-    data = request.get_json()
-    user_id = data.get('user_id', None)
-    event_id = data.get('event_id', None)
-    ticket_type = data.get('ticket_type', None)
-    date_time = data.get('date_time', None)
-    payment_id = data.get('payment_id', None)
-    status = data.get('status', 'Redeemed')
-    age_verified = data.get('age_verified', False)
-
-    if date_time:
-        date_time = date_parser.parse(date_time)
-
-    qr_data = str(uuid.uuid4()) 
-    qr_code_path = generate_qr_code(qr_data)
-
-    if qr_code_path:
-        ticket = Ticket(
-            user_id=user_id,
-            event_id=event_id,
-            ticket_type=ticket_type,
-            date_time=date_time,
-            payment_id=payment_id,
-            status=status,
-            qr_code=qr_code_path
-            age_verified=age_verified
-        )
-    else:
-        return jsonify(
-            {"code": 500,
-             "message": "Failed to generate QR code."
-             }
-            ), 500
-
+    """
+    Create a ticket for a specific event.
+    ---
+    requestBody:
+        description: Refund submission details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        user_id:
+                            type: string
+                            description: ID of the user
+                        event_id:
+                            type: string
+                            description: ID of the event
+                        ticket_id:
+                            type: string
+                            description: ID of the ticket
+    responses:
+        201:
+            description: Ticket created successfully
+        400:
+            description: Missing required fields in body
+        500:
+            description: Internal server error
+    """
     try:
-        db.session.add(ticket)
-        db.session.commit()
+        required_fields = ['user_id', 'event_id', 'ticket_id']
+        if not all(field in request.json for field in required_fields):
+            return jsonify(
+                {
+                    "code": 400,
+                    "message": "Missing required fields. Please provide user_id, event_id, ticket_id."
+                }
+            ), 400
+        
+        doc_ref = db.collection("tickets").document(request.json['ticket_id'])
+        doc_ref.set({
+            'user_id': request.json['user_id'],
+            'created_at': formatted_time,
+            'event_id': request.json['event_id'],
+            'ticket_id': request.json['ticket_id'],
+            'age_verified': False,
+            'ticket_redeemed': False,
+            'payment_id': ""
+        })
+
+        return jsonify(
+            {
+                "code": 201,
+                "message": "Ticket created successfully."
+            }
+        ), 201
     except Exception as e:
         return jsonify(
             {
                 "code": 500,
-                "message": "An error occurred while creating the ticket. " + str(e)
+                "message": "An error occurred while submitting the refund request. " + str(e)
             }
         ), 500
     
-    print(json.dumps(ticket.json(), default=str))
-    print()
+@app.route("/tickets/<string:ticket_id>/age_verify", methods=["PUT"])
+def update_age_verification(ticket_id):
+    """
+    Update the age verification status of a ticket.
+    ---
+    parameters:
+        -   in: path
+            name: ticket_id
+            required: true
+    requestBody:
+        description: Age verification details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        age_verified:
+                            type: boolean
+                            description: Age verification status to be updated
+    responses:
+        200:
+            description: Age verification status updated successfully
+        404:
+            description: Missing required fields in body
+    """
+    required_fields = ['age_verified']
+    if not all(field in request.json for field in required_fields):
+        return jsonify(
+            {
+                "code": 404,
+                "message": "Missing required fields. Please provide age_verified."
+            }
+        ), 404
+
+    doc_ref = db.collection("tickets").document(ticket_id)
+    doc_ref.update({
+        'age_verified': request.json['age_verified']
+    })
 
     return jsonify(
         {
-            "code": 201,
-            "data": ticket.json()
+            "code": 200,
+            "message": "Ticket ID: " + str(ticket_id) + "'s age verification status updated successfully to " + str(request.json['age_verified']) + "."
         }
-    ), 201
+    ), 200
 
-@app.route("/order/<int:ticket_id>", methods=['PUT'])
-def update_ticket(ticket_id):
-    try:
-        ticket = db.session.scalars(db.select(Ticket).filter_by(ticket_id=ticket_id).limit(1)).first()
-        if not ticket:
-            return jsonify(
-                {
-                    "code": 404,
-                    "data": {
-                        "ticket_id": ticket_id
-                    },
-                    "message": "Ticket not found."
-                }
-            ), 404
-
-        update_fields = request.get_json()
-        valid_fields = ['status', 'payment_id', 'user_id']
-
-        for field in valid_fields:
-            if field in update_fields:
-                setattr(ticket, field, update_fields[field])
-        
-        db.session.commit()
-
+@app.route("/tickets/<string:ticket_id>/redeem", methods=["PUT"])
+def update_ticket_redeem(ticket_id):
+    """
+    Update the redemption status of a ticket.
+    ---
+    parameters:
+        -   in: path
+            name: ticket_id
+            required: true
+    requestBody:
+        description: Redemption details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        ticket_redeemed:
+                            type: boolean
+                            description: Redemption status to be updated
+    responses:
+        200:
+            description: Redemption status updated successfully
+        404:
+            description: Missing required fields in body
+    """
+    required_fields = ['ticket_redeemed']
+    if not all(field in request.json for field in required_fields):
         return jsonify(
             {
-                "code": 200,
-                "data": ticket.json()
+                "code": 404,
+                "message": "Missing required fields. Please provide ticket_redeemed."
             }
-        ), 200
+        ), 404
 
-    except Exception as e:
+    doc_ref = db.collection("tickets").document(ticket_id)
+    doc_ref.update({
+        'ticket_redeemed': request.json['ticket_redeemed']
+    })
+
+    return jsonify(
+        {
+            "code": 200,
+            "message": "Ticket ID: " + str(ticket_id) + "'s redemption status updated successfully to " + str(request.json['ticket_redeemed']) + "."
+        }
+    ), 200
+
+@app.route("/tickets/<string:ticket_id>/payment", methods=["PUT"])
+def update_payment_id(ticket_id):
+    """
+    Update the payment ID of a ticket.
+    ---
+    parameters:
+        -   in: path
+            name: ticket_id
+            required: true
+    requestBody:
+        description: Redemption details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        payment_id:
+                            type: string
+                            description: Payment ID to be updated
+    responses:
+        200:
+            description: Payment ID updated successfully
+        404:
+            description: Missing required fields in body
+    """
+    required_fields = ['payment_id']
+    if not all(field in request.json for field in required_fields):
         return jsonify(
             {
-                "code": 500,
-                "data": {
-                    "ticket_id": ticket_id
-                },
-                "message": "An error occurred while updating the ticket. " + str(e)
+                "code": 404,
+                "message": "Missing required fields. Please provide payment_id."
             }
-        ), 500
+        ), 404
+
+    doc_ref = db.collection("tickets").document(ticket_id)
+    doc_ref.update({
+        'payment_id': request.json['payment_id']
+    })
+
+    return jsonify(
+        {
+            "code": 200,
+            "message": "Ticket ID: " + str(ticket_id) + "'s redemption status updated successfully to " + str(request.json['payment_id']) + "."
+        }
+    ), 200
+
+# def generate_qr_code(qr_data):
+#     try:
+#         qr = pyqrcode.create(qr_data)
+#         qr_path = os.path.join('qr_codes', f'{qr_data}.png')
+#         qr.png(qr_path, scale=8)
+#         return qr_path
+#     except Exception as e:
+#         print("Error generating QR code:", str(e))
+#         return None
 
 if __name__ == '__main__':
-    print("This is Flask for " + os.path.basename(__file__) + ": managing tickets ...")
     app.run(host='0.0.0.0', port=5001, debug=True)

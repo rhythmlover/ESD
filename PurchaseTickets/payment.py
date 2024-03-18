@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-stripe.api_key = "sk_test_51OsyUO2LHSKllIVVLicsqNteZkHVwC6ViXLkEJtMTqxPVa3paUucKASoYfiIKGB06v3Atrf1UMmQ41kg1F3c8SIH00RBqtmlXJ"
+stripe.api_key = "sk_test_51OtVqgKfHG7YK88cdJNGkMVFtQPKWij5Pw7TbjwqK2raomL5XHd5xWvJaHYt0mRauvw2wKBZbtmo4MFi0KxtIlLF001kl4HcOC"
 
 @app.route("/process_payment", methods=['POST'])
 def process_payment():
@@ -16,6 +16,7 @@ def process_payment():
                 amount = payment_data.get('amount'),
                 currency = payment_data.get('currency'),
                 payment_method = payment_data.get('payment_method_id'),
+                customer = payment_data.get('customer_id'),
                 confirm=True,
                 return_url="http://localhost/IS213/ESD/PurchaseTickets/index.html",
             )
@@ -23,9 +24,10 @@ def process_payment():
             return jsonify({
                 "code": 200,
                 "message": "Payment processed successfully.",
-                "payment_intent_id": payment_intent.id,
-                "requires_action": payment_intent.status == "requires_action",
-                "next_action": payment_intent.next_action
+                "data": {
+                    "id": payment_intent.id,
+                    "amount": payment_intent.amount
+                }
             }), 200
 
         except stripe.error.StripeError as e:

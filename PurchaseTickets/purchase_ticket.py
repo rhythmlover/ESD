@@ -2,16 +2,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os, sys
 from invokes import invoke_http
+import pika
 import json
 import amqp_connection
 
 app = Flask(__name__)
 CORS(app)
 
+user_URL = "http://localhost:5000/users"
 ticket_URL = "http://localhost:5001/tickets"
 payment_URL = "http://localhost:5002/process_payment"
-email_URL = "http://localhost:5003/sendEmail"
-user_URL = "http://localhost:5004/user"
+email_URL = "http://localhost:5003/send_email"
 
 exchangename = "ticket_topic"
 exchangetype = "topic"
@@ -28,12 +29,7 @@ def purchase_ticket():
     if request.is_json:
         try:
             ticket_request = request.get_json()
-            ticket_request = request.get_json()
             user_id = ticket_request.get('user_id')
-            event_id = ticket_request.get('event_id')
-            ticket_type = ticket_request.get('ticket_type')
-            date_time = ticket_request.get('date_time')
-            seat_location = ticket_request.get('seat_location')
 
             # Step 1: Fetch user details
             user_response = get_user_data(user_id)
@@ -41,40 +37,50 @@ def purchase_ticket():
                 return jsonify({"code": 404, "message": "User not found."}), 404
 
             # Step 2: Create Ticket
-            ticket_response = invoke_http(ticket_URL, method='POST', json=ticket_request)
-            if ticket_response["code"] not in range(200, 300):
-                return jsonify(ticket_response), ticket_response["code"]
+            print('\n-----Invoking Ticket microservice-----')
+            ticket_creation_data = invoke_http(f"{ticket_URL}/create", method='POST', json=ticket_request)
+            if ticket_creation_data["code"] not in range(200, 300):
+                return jsonify(ticket_creation_data), ticket_creation_data["code"]
+            
+            # Get ticket details
+            ticket_details_data = invoke_http(f"{ticket_URL}/{ticket_request.get('ticket_id')}", method='GET')
+            print('\n-----Successfully Invoked Ticket microservice-----')
 
             # Step 3: Process Payment
+            print('\n-----Invoking Payment microservice-----')
             payment_response = invoke_http(payment_URL, method='POST', json={
                 "user_id": user_id,
-                "ticket_id": ticket_response["data"]["ticket_id"],
-                "amount": ticket_request.get('data', {}).get('amount'),
-                "currency": "usd",
-                "payment_method_id": "pm_1OuxTr2LHSKllIVV0edx7rsn" 
+                "ticket_id": ticket_details_data['data']["ticket_id"],
+                "amount": ticket_request.get('amount'),
+                "currency": "sgd",
+                # Hardcoded payment method and customer id for testing
+                "payment_method_id": "pm_1OvgDSKfHG7YK88cc15CHNoY",
+                "customer_id": "cus_PlCcmvx7EcNIeU"
             })
             if payment_response["code"] == 200:
-                payment_id = payment_response["data"]["payment_id"]
+                payment_id = payment_response["data"]["id"]
 
                 ticket_update_data = {
                     "payment_id": payment_id
                 }
-                update_response = invoke_http(f"{ticket_URL}/order/{ticket_response['data']['ticket_id']}", method='PUT', json=ticket_update_data)
+                update_response = invoke_http(f"{ticket_URL}/{ticket_details_data['data']['ticket_id']}/payment", method='PUT', json=ticket_update_data)
                 
                 if update_response["code"] not in range(200, 300):
                     return jsonify(update_response), update_response["code"]
             else:
-                return jsonify(payment_response), payment_response["code"]    
+                return jsonify(payment_response), payment_response["code"]  
+            print('\n-----Successfully Invoked Payment microservice-----')  
 
+            print('\n-----Invoking Email microservice-----')
             # Step 5: Send Notification
+            html_content_json = json.dumps({**payment_response["data"], **ticket_details_data["data"]})
             email_response = invoke_http(email_URL, method='POST', json={
-                "email": user_response["email"],
-                "message": "Your ticket has been successfully purchased.",
-                "ticket_details": ticket_response["data"],
-                "payment_details": payment_response["data"]
+                "to_email": user_response["email"],
+                "html_content": html_content_json
             })
             if email_response["code"] not in range(200, 300):
                 return jsonify(email_response), email_response["code"]
+            print('\n-----Successfully Invoked Email microservice-----')  
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -87,10 +93,15 @@ def purchase_ticket():
                 "message": "purchase_ticket.py internal error: " + ex_str
             }), 500
 
-    return jsonify({
-        "code": 400,
-        "message": "Invalid JSON input: " + str(request.get_data())
-    }), 400
+        return jsonify({
+            "code": 201,
+            "message": "Ticket purchased successfully."
+        }), 201
+    else:
+        return jsonify({
+            "code": 400,
+            "message": "Invalid JSON input: " + str(request.get_data())
+        }), 400
 
 def get_user_data(user_id):
     user_response = invoke_http(f"{user_URL}/{user_id}", method='GET')
@@ -99,35 +110,5 @@ def get_user_data(user_id):
     else:
         return None
 
-def process_purchase_ticket(ticket):
-    print('\n-----Invoking ticket microservice-----')
-    ticket_result = invoke_http(ticket_URL, method='POST', json=ticket)
-    print('ticket_result:', ticket_result)
-
-    code = ticket_result["code"]
-    message = json.dumps(ticket_result)
-
-    if code not in range(200, 300):
-        print('\n\n-----Publishing the (ticket error) message with routing_key=ticket.error-----')
-        channel.basic_publish(exchange=exchangename, routing_key="ticket.error", 
-            body=message, properties=pika.BasicProperties(delivery_mode = 2))
-
-        print("\nTicket purchase status ({:d}) published to the RabbitMQ Exchange:".format(
-            code), ticket_result)
-
-        return {
-            "code": 400,
-            "data": {"ticket_result": ticket_result},
-            "message": "Ticket purchase failure sent for error handling."
-        }
-    
-    return {
-        "code": 201,
-        "data": {
-            "ticket_result": ticket_result,
-        }
-    }
-
 if __name__ == "__main__":
-    print("This is flask " + os.path.basename(__file__) + " for purchasing a ticket...")
     app.run(host="0.0.0.0", port=5100, debug=True)
