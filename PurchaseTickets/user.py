@@ -1,44 +1,47 @@
-import os
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify
+import firebase_admin
+from firebase_admin import firestore, credentials
+from datetime import datetime
 
+# Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
+cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-# Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost:3306/user'  # Adjust database URI accordingly
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
-db = SQLAlchemy(app)
+# Endpoints
+@app.route("/users/<string:user_id>", methods=['GET'])
+def get_user_details(user_id):
+    """
+    Retrieves account details of a specific user.
+    ---
+    parameters:
+        -   in: path
+            name: user_id
+            required: true
+    responses:
+        200:
+            description: Return the account details of the user with the specified user_id
+        404:
+            description: No user with the specified user_id found.
+    """
+    users_ref = db.collection("users").document(user_id)
+    user_details = users_ref.get()
 
-# Database Model for User
-class User(db.Model):
-    __tablename__ = 'user'
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(100), nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False)
-
-    def json(self):
-        return {
-            'user_id': self.user_id,
-            'username': self.username,
-            'email': self.email,
-        }
-
-@app.route("/user/<int:user_id>", methods=['GET'])
-def get_user(user_id):
-    user = User.query.filter_by(user_id=user_id).first()
-    if user:
-        return jsonify({
-            "code": 200,
-            "data": user.json()
-        }), 200
-    else:
-        return jsonify({
+    if user_details.exists:
+        data = user_details.to_dict()
+        return jsonify(
+            {
+                "code": 200,
+                "data": data
+            }
+        )
+    return jsonify(
+        {
             "code": 404,
-            "message": "User not found."
-        }), 404
+            "message": "No user with the specified user_id found."
+        }
+    ), 404
 
 if __name__ == '__main__':
-    print("This is Flask for " + os.path.basename(__file__) + ": providing user information...")
-    app.run(host='0.0.0.0', port=5004, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

@@ -11,10 +11,10 @@
           "method": "GET",
           "header": [],
           "url": {
-            "raw": "http://localhost:5004/user/1",
+            "raw": "http://localhost:5000/users/101",
             "host": ["localhost"],
-            "port": "5004",
-            "path": ["user", "1"]
+            "port": "5000",
+            "path": ["users", "101"]
           }
         },
         "response": []
@@ -31,13 +31,13 @@
           ],
           "body": {
             "mode": "raw",
-            "raw": "{\"user_id\": \"1\", \"event_id\": 1, \"ticket_type\": \"General Admission\", \"date_time\": \"2024-03-20T19:00:00\", \"seat_location\": \"A1\", \"status\": \"NEW\"}"
+            "raw": "{\"user_id\": \"101\", \"event_id\": \"201\", \"ticket_id\": \"301\"}"
           },
           "url": {
-            "raw": "http://localhost:5001/tickets",
+            "raw": "http://localhost:5001/tickets/create",
             "host": ["localhost"],
             "port": "5001",
-            "path": ["tickets"]
+            "path": ["tickets", "create"]
           }
         },
         "response": []
@@ -54,7 +54,7 @@
           ],
           "body": {
             "mode": "raw",
-            "raw": "{\"user_id\": \"1\", \"ticket_id\": 123, \"amount\": 10000, \"currency\": \"usd\", \"payment_method_id\": \"pm_card_visa\"}"
+            "raw": "{\"user_id\": \"101\", \"ticket_id\": \"301\", \"amount\": \"10000\", \"currency\": \"sgd\", \"payment_method_id\": \"pm_1OvgDSKfHG7YK88cc15CHNoY\", \"customer_id\": \"cus_PlCcmvx7EcNIeU\"}"
           },
           "url": {
             "raw": "http://localhost:5002/process_payment",
@@ -77,7 +77,7 @@
           ],
           "body": {
             "mode": "raw",
-            "raw": "{\"email\": \"user@example.com\", \"subject\": \"Ticket Purchase Confirmation\", \"message\": \"Congratulations! Your ticket purchase was successful.\"}"
+            "raw": "{\"to_email\": \"user@example.com\", \"html_content\": \"Congratulations! Your ticket purchase was successful.\"}"
           },
           "url": {
             "raw": "http://localhost:5003/send_email",
@@ -100,7 +100,7 @@
           ],
           "body": {
             "mode": "raw",
-            "raw": "{\"user_id\": \"1\", \"event_id\": 1, \"email\": \"user@example.com\", \"ticket_type\": \"VIP\", \"date_time\": \"2024-03-25T20:00:00\", \"seat_location\": \"V1\"}"
+            "raw": "{\"user_id\": \"101\", \"event_id\": \"202\", \"ticket_id\": \"302\", \"amount\": \"10000\"}"
           },
           "url": {
             "raw": "http://localhost:5100/purchase_ticket",
