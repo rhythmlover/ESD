@@ -30,11 +30,11 @@ CREATE TABLE IF NOT EXISTS `ticket` (
   `event_id` int(11) NOT NULL,
   `ticket_type` varchar(50) NOT NULL,
   `date_time` datetime NOT NULL,
-  `seat_location` varchar(100) DEFAULT NULL,
   `payment_id` varchar(50) DEFAULT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'Available',
-  `qr_code` text,
+  `status` varchar(20) NOT NULL DEFAULT 'Not Redeemed',
+  `qr_code` varchar(255) NOT NULL, 
   `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  'age_verified' boolean NOT NULL DEFAULT FALSE,
   `valid_till` datetime DEFAULT NULL,
   PRIMARY KEY (`ticket_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

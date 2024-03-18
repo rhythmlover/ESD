@@ -4,8 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from dateutil import parser as date_parser
 import json
-import barcode
-from barcode.writer import ImageWriter
+import pyqrcode
+import uuid
 
 app = Flask(__name__)
 
@@ -15,19 +15,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 db = SQLAlchemy(app)
 
-def generate_barcode(barcode_data):
+def generate_qr_code(qr_data):
     try:
-        # Generate barcode image
-        code128 = barcode.get_barcode_class('code128')
-        barcode_instance = code128(barcode_data, writer=ImageWriter())
-        barcode_path = os.path.join('barcode_images', f'{barcode_data}.png')
-        barcode_instance.save(barcode_path)
-        return barcode_path
+        qr = pyqrcode.create(qr_data)
+        qr_path = os.path.join('qr_codes', f'{qr_data}.png')
+        qr.png(qr_path, scale=8)
+        return qr_path
     except Exception as e:
-        print("Error generating barcode:", str(e))
+        print("Error generating QR code:", str(e))
         return None
 
-# Database Models
 class Ticket(db.Model):
     __tablename__ = 'ticket'
     ticket_id = db.Column(db.Integer, primary_key=True)
@@ -35,11 +32,11 @@ class Ticket(db.Model):
     event_id = db.Column(db.Integer, nullable=False)
     ticket_type = db.Column(db.String(50), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
-    seat_location = db.Column(db.String(100))
     payment_id = db.Column(db.String(50))
-    status = db.Column(db.String(20), default='Available')
-    bar_code = db.Column(db.Text)
+    status = db.Column(db.String(20), default='Not Redeemed')
+    qr_code = db.Column(db.String(255), nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    age_verified = db.Column(db.Boolean, default=False)
     valid_till = db.Column(db.DateTime)
 
     def json(self):
@@ -49,15 +46,14 @@ class Ticket(db.Model):
             'event_id': self.event_id,
             'ticket_type': self.ticket_type,
             'date_time': self.date_time.isoformat(),
-            'seat_location': self.seat_location,
             'payment_id': self.payment_id,
             'status': self.status,
             'qr_code': self.qr_code,
             'creation_date': self.creation_date.isoformat(),
+            'age_verified':self.age_verified,
             'valid_till': self.valid_till.isoformat() if self.valid_till else None
         }
 
-# Routes
 @app.route("/tickets", methods=['GET'])
 def get_all_tickets():
     ticketlist = db.session.scalars(db.select(Ticket)).all()
@@ -99,15 +95,38 @@ def find_ticket_by_id(ticket_id):
 
 @app.route("/tickets", methods=['POST'])
 def create_ticket():
-    user_id = request.json.get('user_id', None)
-    barcode_data = str(uuid.uuid4())
-    ticket = Ticket(user_id=user_id, status='NEW')
+    data = request.get_json()
+    user_id = data.get('user_id', None)
+    event_id = data.get('event_id', None)
+    ticket_type = data.get('ticket_type', None)
+    date_time = data.get('date_time', None)
+    payment_id = data.get('payment_id', None)
+    status = data.get('status', 'Redeemed')
+    age_verified = data.get('age_verified', False)
 
-    barcode_path = generate_barcode(barcode_data)
-    if barcode_path:
-        ticket.qr_code = barcode_path
+    if date_time:
+        date_time = date_parser.parse(date_time)
+
+    qr_data = str(uuid.uuid4()) 
+    qr_code_path = generate_qr_code(qr_data)
+
+    if qr_code_path:
+        ticket = Ticket(
+            user_id=user_id,
+            event_id=event_id,
+            ticket_type=ticket_type,
+            date_time=date_time,
+            payment_id=payment_id,
+            status=status,
+            qr_code=qr_code_path
+            age_verified=age_verified
+        )
     else:
-        return jsonify({"code": 500, "message": "Failed to generate barcode."}), 500
+        return jsonify(
+            {"code": 500,
+             "message": "Failed to generate QR code."
+             }
+            ), 500
 
     try:
         db.session.add(ticket)
@@ -120,7 +139,7 @@ def create_ticket():
             }
         ), 500
     
-    print(json.dumps(ticket.json(), default=str)) # convert a JSON object to a string and print
+    print(json.dumps(ticket.json(), default=str))
     print()
 
     return jsonify(
@@ -145,17 +164,22 @@ def update_ticket(ticket_id):
                 }
             ), 404
 
-        # update status
-        data = request.get_json()
-        if data['status']:
-            ticket.status = data['status']
-            db.session.commit()
-            return jsonify(
-                {
-                    "code": 200,
-                    "data": ticket.json()
-                }
-            ), 200
+        update_fields = request.get_json()
+        valid_fields = ['status', 'payment_id', 'user_id']
+
+        for field in valid_fields:
+            if field in update_fields:
+                setattr(ticket, field, update_fields[field])
+        
+        db.session.commit()
+
+        return jsonify(
+            {
+                "code": 200,
+                "data": ticket.json()
+            }
+        ), 200
+
     except Exception as e:
         return jsonify(
             {
