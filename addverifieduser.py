@@ -24,7 +24,7 @@ def update_verified():
         doc_ref = db.collection('tickets').document(ticket_id)
 
         # Update the 'verified' attribute
-        doc_ref.update({"verified": True})
+        doc_ref.update({"age_verified": True})
 
         return jsonify({"success": True, "message": f"Ticket {ticket_id} verified status updated."}), 200
     except Exception as e:
