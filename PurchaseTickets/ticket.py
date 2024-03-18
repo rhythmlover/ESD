@@ -32,11 +32,11 @@ class Ticket(db.Model):
     event_id = db.Column(db.Integer, nullable=False)
     ticket_type = db.Column(db.String(50), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
-    seat_location = db.Column(db.String(100))
     payment_id = db.Column(db.String(50))
-    status = db.Column(db.String(20), default='Available')
+    status = db.Column(db.String(20), default='Not Redeemed')
     qr_code = db.Column(db.String(255), nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    age_verified = db.Column(db.Boolean, default=False)
     valid_till = db.Column(db.DateTime)
 
     def json(self):
@@ -46,11 +46,11 @@ class Ticket(db.Model):
             'event_id': self.event_id,
             'ticket_type': self.ticket_type,
             'date_time': self.date_time.isoformat(),
-            'seat_location': self.seat_location,
             'payment_id': self.payment_id,
             'status': self.status,
             'qr_code': self.qr_code,
             'creation_date': self.creation_date.isoformat(),
+            'age_verified':self.age_verified,
             'valid_till': self.valid_till.isoformat() if self.valid_till else None
         }
 
@@ -100,14 +100,14 @@ def create_ticket():
     event_id = data.get('event_id', None)
     ticket_type = data.get('ticket_type', None)
     date_time = data.get('date_time', None)
-    seat_location = data.get('seat_location', None)
     payment_id = data.get('payment_id', None)
-    status = data.get('status', 'NEW')
+    status = data.get('status', 'Redeemed')
+    age_verified = data.get('age_verified', False)
 
     if date_time:
         date_time = date_parser.parse(date_time)
 
-    qr_data = str(uuid.uuid4())  # Generate unique data for QR code
+    qr_data = str(uuid.uuid4()) 
     qr_code_path = generate_qr_code(qr_data)
 
     if qr_code_path:
@@ -116,10 +116,10 @@ def create_ticket():
             event_id=event_id,
             ticket_type=ticket_type,
             date_time=date_time,
-            seat_location=seat_location,
             payment_id=payment_id,
             status=status,
             qr_code=qr_code_path
+            age_verified=age_verified
         )
     else:
         return jsonify(
