@@ -9,7 +9,7 @@ import amqp_connection
 app = Flask(__name__)
 CORS(app)
 
-user_URL = "http://localhost:5000/users"
+user_URL = "http://localhost:5004/users"
 ticket_URL = "http://localhost:5001/tickets"
 payment_URL = "http://localhost:5002/process_payment"
 email_URL = "http://localhost:5003/send_email"
@@ -54,8 +54,8 @@ def purchase_ticket():
                 "amount": ticket_request.get('amount'),
                 "currency": "sgd",
                 # Hardcoded payment method and customer id for testing
-                "payment_method_id": "pm_1OvgDSKfHG7YK88cc15CHNoY",
-                "customer_id": "cus_PlCcmvx7EcNIeU"
+                "payment_method_id": "pm_1OvsxW2LHSKllIVVJ6xs1nRw",
+                "customer_id": "cus_PlPj7w7jUycNMl"
             })
             if payment_response["code"] == 200:
                 payment_id = payment_response["data"]["id"]
@@ -73,10 +73,29 @@ def purchase_ticket():
 
             print('\n-----Invoking Email microservice-----')
             # Step 5: Send Notification
-            html_content_json = json.dumps({**payment_response["data"], **ticket_details_data["data"]})
+            html_content = f"""
+            <html>
+                <body>
+                    <h1>Purchase Confirmation</h1>
+                    <p>Thank you for your purchase. Here are the details of your transaction:</p>
+                    <ul>
+                        <li><strong>User ID:</strong> {user_id}</li>
+                        <li><strong>Payment ID:</strong> {payment_id}</li>
+                        <li><strong>Amount Paid:</strong> ${round(((payment_response["data"].get("amount", "N/A"))/100),2)}</li>
+                        <li><strong>Age Verified:</strong> {ticket_details_data["data"].get("age_verified")}</li>
+                        <li><strong>Transaction Date:</strong> {ticket_details_data["data"].get("created_at", "N/A")}</li>
+                        <li><strong>Event ID:</strong> {ticket_details_data["data"].get("event_id", "N/A")}</li>
+                        <li><strong>Ticket ID:</strong> {ticket_details_data["data"].get("ticket_id", "N/A")}</li>
+                        <li><strong>Ticket Redeemed:</strong> {ticket_details_data["data"].get("ticket_redeemed")}</li>
+                    </ul>
+                    <p>Best regards,<br>Ticketmaster</p>
+                </body>
+            </html>
+            """
+            # html_content_json = json.dumps({**payment_response["data"], **ticket_details_data["data"]["amount"]})
             email_response = invoke_http(email_URL, method='POST', json={
                 "to_email": user_response["email"],
-                "html_content": html_content_json
+                "html_content": html_content
             })
             if email_response["code"] not in range(200, 300):
                 return jsonify(email_response), email_response["code"]
@@ -111,4 +130,4 @@ def get_user_data(user_id):
         return None
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5100, debug=True)
+    app.run(host="0.0.0.0", port=5200, debug=True)

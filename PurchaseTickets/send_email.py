@@ -49,7 +49,7 @@ def send_email():
         html_content=request.json['html_content'])
 
         sg = SendGridAPIClient(
-            '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')
+            '')
         response = sg.send(message)
  
         # https://docs.sendgrid.com/api-reference/mail-send/mail-send#responses
