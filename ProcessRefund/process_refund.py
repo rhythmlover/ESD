@@ -19,7 +19,7 @@ email_URL = "http://localhost:5003/send_email"
 
 # Using RabbitMQ as the message broker
 error_URL = "http://localhost:5100/log/error"
-refund_log_URL = "http://localhost:5100/log/activity"
+activity_log_URL = "http://localhost:5100/log/activity"
 
 exchangename = "refund_topic" # exchange name
 exchangetype="topic" # use a 'topic' exchange to enable interaction
@@ -95,7 +95,7 @@ def createRefund(refund):
 
         invoke_http(error_URL, method="POST", json=refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="refund.error", 
-            body=message, properties=pika.BasicProperties(delivery_mode = 2)) 
+            body=message, properties=pika.BasicProperties(delivery_mode = 2))
         # make message persistent within the matching queues until it is received by some receiver 
         # (the matching queues have to exist and be durable and bound to the exchange)
 
@@ -114,10 +114,10 @@ def createRefund(refund):
     else:
         # Record new refund
         # record the refund log anyway
-        print('\n\n-----Invoking refund_log microservice-----')
+        print('\n\n-----Invoking activity_log microservice-----')
         print('\n\n-----Publishing the (refund info) message with routing_key=refund.info-----')        
 
-        invoke_http(refund_log_URL, method="POST", json=refund_result)
+        invoke_http(activity_log_URL, method="POST", json=refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
             body=message)
         
@@ -208,10 +208,10 @@ def updateRefund(refund):
         else:
             # Record new email
             # record the refund log anyway
-            print('\n\n-----Invoking refund_log microservice-----')
+            print('\n\n-----Invoking activity_log microservice-----')
             print('\n\n-----Publishing the (refund info) message with routing_key=refund.info-----')        
 
-            invoke_http(refund_log_URL, method="POST", json=update_refund_result)            
+            invoke_http(activity_log_URL, method="POST", json=update_refund_result)            
             channel.basic_publish(exchange=exchangename, routing_key="email.info", 
                 body=message)
             
