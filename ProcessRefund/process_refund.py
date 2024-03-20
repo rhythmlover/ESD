@@ -13,6 +13,7 @@ import amqp_connection
 app = Flask(__name__)
 CORS(app)
 
+user_URL = "http://localhost:5004/users"
 refund_URL = "http://localhost:5001/refunds"
 payment_URL = "http://localhost:5002/submit_refund"
 email_URL = "http://localhost:5003/send_email"
@@ -41,17 +42,22 @@ def process_refund():
             refund = request.get_json()
             print("\nReceived a refund in JSON:", refund)
 
+            # Fetch user details
+            user_id = refund.get('user_id')
+            user_response = get_user_data(user_id)
+            if not user_response:
+                return jsonify({"code": 404, "message": "User not found."}), 404
             # do the actual work
             # 1. Send refund info {refund details: ticket_id, event_id, created time, status}
 
             # Check if user is requesting a refund or updating a refund
             if 'refund_status' in refund:
-                result = updateRefund(refund)
+                result = updateRefund(refund, user_response)
                 print('\n------------------------')
                 print('\nresult: ', result)
                 return jsonify(result), result["code"]
             else:
-                result = createRefund(refund)
+                result = createRefund(refund, user_response)
                 print('\n------------------------')
                 print('\nresult: ', result)
                 return jsonify(result), result["code"]
@@ -76,7 +82,7 @@ def process_refund():
 
 
 # Function to create a refund using the refund microservice
-def createRefund(refund):
+def createRefund(refund, user_response):
     # 2. Send the refund info {refund details: ticket_id, event_id, created time, status}
     # Invoke the refund microservice
 
@@ -87,7 +93,6 @@ def createRefund(refund):
     # Check the refund result; if a failure, send it to the error microservice.
     code = refund_result["code"]
     message = json.dumps(refund_result)
-
     if code not in range(200, 300):
         # Inform the error microservice
         #print('\n\n-----Invoking error microservice as refund fails-----')
@@ -121,6 +126,18 @@ def createRefund(refund):
         channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
             body=message)
         
+        # 2. Send the created refund result {refund details: ticket_id, event_id, created time, status}
+        # Invoke the email microservice
+
+        print('\n-----Invoking email microservice-----')
+        create_refund_result = invoke_http(email_URL, method='POST', json={
+            "to_email": user_response["email"],
+            "html_content": message
+        })
+        if create_refund_result["code"] not in range(200, 300):
+                return create_refund_result
+        print('\n-----Successfully Invoked Email microservice-----')  
+
         # Return success FOR NOW
         return {
             "code": 201,
@@ -133,13 +150,13 @@ def createRefund(refund):
     # continue even if this invocation fails
     
 # Function to update a refund using the refund microservice
-def updateRefund(refund):
+def updateRefund(refund, user_response):
     # Send new refund to refund to update refund status
     # Invoke the refund microservice
     print('\n\n-----Invoking refund microservice-----')
     
     update_refund_result = invoke_http(refund_URL, method="PUT", json=refund)
-    print("refund_result:", update_refund_result, '\n')
+    print("update_refund_result:", update_refund_result, '\n')
 
     #Check the update refund result; if failure, send to error microservice
     code = update_refund_result['code']
@@ -167,19 +184,25 @@ def updateRefund(refund):
     # If update refund was successful:
     # Checking refund status to decide next actions
     refund_status = update_refund_result['refund_status']
-
     if refund_status == "approved" or refund_status == "Approved":
         pass
     elif refund_status == "rejected" or refund_status == "Rejected":
         # 2. Send the updated refund result {refund details: ticket_id, event_id, created time, status}
         # Invoke the email microservice
+        message = json.dumps(update_refund_result)
 
         print('\n-----Invoking email microservice-----')
-        update_refund_result = invoke_http(email_URL, method='POST', json=update_refund_result)
-        print('update_refund_result:', update_refund_result)
+        send_email = invoke_http(email_URL, method='POST', json={
+            "to_email": user_response["email"],
+            "html_content": message
+        })
+        print("send_email:", send_email)
+        if send_email["code"] not in range(200, 300):
+                return send_email
+        print('\n-----Successfully Invoked Email microservice-----')  
 
         # Check the email result; if a failure, send it to the error microservice.
-        code = update_refund_result["code"]
+        code = send_email["code"]
         message = json.dumps(update_refund_result)
 
         if code not in range(200, 300):
@@ -218,8 +241,18 @@ def updateRefund(refund):
         print("\Refund published to RabbitMQ Exchange.\n")
         # - reply from the invocation is not used;
         # continue even if this invocation fails
+        return {
+            "code": 201,
+            "data": {"refund_result": update_refund_result},
+            "message": "Refund request updated successfully."
+        }
 
-
+def get_user_data(user_id):
+    user_response = invoke_http(f"{user_URL}/{user_id}", method='GET')
+    if user_response.get("code") == 200:
+        return user_response.get("data")
+    else:
+        return None
 
 # Execute this program if it is run as a main script (not by 'import')
 if __name__ == "__main__":

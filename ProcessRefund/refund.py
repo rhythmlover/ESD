@@ -166,7 +166,8 @@ def update_book():
     return jsonify(
         {
             "code": 200,
-            "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully."
+            "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully.",
+            "refund_status": request.json['refund_status']
         }
     ), 200
 
