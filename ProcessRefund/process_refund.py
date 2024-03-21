@@ -19,6 +19,7 @@ ticket_URL = "http://localhost:5005/tickets"
 # Using RabbitMQ as the message broker
 error_URL = "http://localhost:5100/log/error"
 activity_log_URL = "http://localhost:5100/log/activity"
+activity_log_URL = "http://localhost:5100/log/activity"
 
 exchangename = "refund_topic" # exchange name
 exchangetype = "topic" # use a 'topic' exchange to enable interaction
