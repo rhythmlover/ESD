@@ -122,7 +122,8 @@ def create_ticket():
             'ticket_id': request.json['ticket_id'],
             'age_verified': False,
             'ticket_redeemed': False,
-            'payment_id': ""
+            'payment_id': "",
+            "charge_id": ""
         })
 
         return jsonify(
@@ -234,7 +235,7 @@ def update_ticket_redeem(ticket_id):
 @app.route("/tickets/<string:ticket_id>/payment", methods=["PUT"])
 def update_payment_id(ticket_id):
     """
-    Update the payment ID of a ticket.
+    Update the payment ID and charge ID of a ticket.
     ---
     parameters:
         -   in: path
@@ -250,42 +251,36 @@ def update_payment_id(ticket_id):
                         payment_id:
                             type: string
                             description: Payment ID to be updated
+                        charge_id:
+                            type: string
+                            description: Charge ID to be updated
     responses:
         200:
-            description: Payment ID updated successfully
+            description: Payment ID and Charge ID updated successfully
         404:
             description: Missing required fields in body
     """
-    required_fields = ['payment_id']
+    required_fields = ['payment_id', 'charge_id']
     if not all(field in request.json for field in required_fields):
         return jsonify(
             {
                 "code": 404,
-                "message": "Missing required fields. Please provide payment_id."
+                "message": "Missing required fields. Please provide payment_id and charge_id."
             }
         ), 404
 
     doc_ref = db.collection("tickets").document(ticket_id)
     doc_ref.update({
-        'payment_id': request.json['payment_id']
+        'payment_id': request.json['payment_id'],
+        'charge_id': request.json['charge_id']
     })
 
     return jsonify(
         {
             "code": 200,
-            "message": "Ticket ID: " + str(ticket_id) + "'s redemption status updated successfully to " + str(request.json['payment_id']) + "."
+            "message": "Ticket ID: " + str(ticket_id) + "'s payment ID and charge ID updated successfully to " + str(request.json['payment_id']) + " and " + str(request.json['charge_id']) + " respectively."
         }
     ), 200
-
-# def generate_qr_code(qr_data):
-#     try:
-#         qr = pyqrcode.create(qr_data)
-#         qr_path = os.path.join('qr_codes', f'{qr_data}.png')
-#         qr.png(qr_path, scale=8)
-#         return qr_path
-#     except Exception as e:
-#         print("Error generating QR code:", str(e))
-#         return None
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5005, debug=True)
