@@ -1,18 +1,16 @@
 #import Flask, request, jsonify from library flask
 from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+import firebase_admin
+from firebase_admin import firestore, credentials
+from datetime import datetime
 
-#initialise 
+# Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
+cred = credentials.Certificate("esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-#The SQLAlchemy Database URI format is: dialect+driver://username:password@host:port/database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/event'
-#Disable modification tracking as it requires extra memory and is not needed
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-#Initialize a connection to the database and keep this in the db variable
-db = SQLAlchemy(app)
-
+"""
 #We create a new class event, which inherits from a basic database model, provided by SQLAlchemy.
 class Event(db.Model):
     #Specify the table name as event 
@@ -20,26 +18,31 @@ class Event(db.Model):
 
     #define data column name, type and if it is nullable (able to not enter input)
     #add (number) after db.String to limit the length
-    event_id = db.Column(db.String(64), primary_key=True) 
-    event_name = db.Column(db.String(64), nullable=False)
-    event_price = db.Column(db.Float(precision=2), nullable=False)
     #YYYYMMDDHHMMSS
     event_datetime = db.Column(db.DateTime, nullable=False) #may need to check datatype for this
-
+    event_description = db.Column(db.String(64), nullable=False)
+    event_id = db.Column(db.String(64), primary_key=True)
+    event_image = db.Column(db.String(precision=2), nullable=False)
+    event_name = db.Column(db.String(64), nullable=False)
+    event_price = db.Column(db.Float(precision=2), nullable=False)
+    
     #Specify the properties of a event when it is created
-    def __init__(self, event_id, event_name, event_price, event_datetime):
-        self.event_id = event_id
-        self.event_name = event_name
-        self.event_price = event_price
+    def __init__(self, event_datetime, event_description, event_id, event_image, event_name, event_price):
         #YYYYMMDDHHMMSS
         self.event_datetime = event_datetime
+        self.event_description = event_description
+        self.event_id = event_id
+        self.event_image = event_image
+        self.event_name = event_name
+        self.event_price = event_price
+        
 
     #Represent our event object as a JSON string
     def json(self):
         return {"event_id": self.event_id, "event_name": self.event_name, "event_price": self.event_price, "event_datetime": self.event_datetime}
+"""
 
-
-
+"""
 #Use Flask's app.route decorator to map the URL route /event to the function get_all
 #To call this function, the URL to use is for GET
 @app.route("/event")
@@ -62,7 +65,9 @@ def get_all():
             "message": "There are no events."
         }
     ), 404
+"""
 
+"""
 #Use Flask's app.route decorator to map the URL route /event/<string:event_id> to the function find_by_event_id
 #To call this function, the URL to use is for GET
 @app.route("/event/<string:event_id>")
@@ -90,8 +95,9 @@ def find_by_event_id(event_id):
             "message": "Event not found."
         }
     ), 404
+"""
 
-
+"""
 #Use Flask's app.route decorator to map the URL route /event/<string:event_id> to the function find_by_event_id
 #To call this function, the URL to use is for POST
 @app.route("/event/<string:event_id>", methods=['POST'])
@@ -142,7 +148,127 @@ def create_event(event_id):
             "data": event.json()
         }
     ), 201
+"""
 
-#Because, we have added the following, we can run it as above instead of python -m flask run 
+@app.route("/events/<string:event_id>", methods=['GET'])
+#Retrieves account details of a specific user.
+def find_by_event_id(event_id):
+    """
+    Retrieves event details of a specific event.
+    ---
+    parameters:
+        -   in: path
+            name: event_id
+            required: true
+    responses:
+        200:
+            description: Return the event details of the event with the specified event_id
+        404:
+            description: No event with the specified event_id found.
+    """
+
+    event_details = db.collection("events").document(event_id).get()
+
+    if event_details.exists:
+        data = event_details.to_dict()
+        return jsonify(
+            {
+                "code": 200,
+                "data": data
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No event with the specified event_id found."
+        }
+    ), 404
+
+
+@app.route("/events/<string:event_id>", methods=['POST'])
+def create_event(event_id):
+    """
+    Create a specific event.
+    ---
+    parameters:
+        -   in: path
+            name: event_id
+            required: true
+    requestBody:
+        description: Review details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        event_datetime: 
+                            type: timestamp
+                            description: Date & Time of event to be created
+                        event_description: 
+                            type: string
+                            description: Description of event to be created
+                        event_id:
+                            type: string
+                            description: ID of event to be created
+                        event_image:
+                            type: string
+                            description: URL of event image to be created
+                        event_name:
+                            type: string
+                            description: Name of event to be created
+                        event_price: 
+                            type: number
+                            description: Price of event to be created
+    responses:
+        201:
+            description: Event created successfully
+        400:
+            description: Missing required fields in body
+        500:
+            description: Internal server error
+    """
+
+    try:
+        required_fields = ['event_datetime', 'event_description', 'event_id', 'event_image', 'event_name', 'event_price']
+        if not all(field in request.json for field in required_fields):
+            return jsonify(
+                {
+                    "code": 400,
+                    "message": "Missing required fields. Please fill in all fields."
+                }
+            ), 400
+
+        #check events
+        doc_ref = db.collection("events").document(event_id)
+        #.collection("events").document()
+        if doc_ref.get().exists:
+            return jsonify(
+                {
+                    "code": 400,
+                    "message": "Event with the specified event_id already exists."
+                }
+            ), 400
+        doc_ref.set({
+            'event_datetime': request.json['event_datetime'],
+            'event_description': request.json['event_description'],
+            'event_id': event_id,
+            'event_image': request.json['event_image'],
+            'event_name': request.json['event_name'],
+            'event_price': request.json['event_price']
+        })
+        return jsonify(
+            {
+                "code": 201,
+                "message": "Event created successfully."
+            }
+        ), 201
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 500,
+                "message": "An error occurred while creating the event. " + str(e)
+            }
+        ), 500
+ 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

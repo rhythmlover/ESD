@@ -6,10 +6,50 @@
 -->
 <html>
 	<head>
-		<title>Dopetrope by HTML5 UP</title>
+		<title>Event</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
+
+		<!-- Axios -->
+		<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		
+        <script>
+			function fetchEvents(event_id) {
+				axios.get(`http://127.0.0.1:5000/events/${event_id}`)
+					.then(response => {
+						const events = response.data.data;
+						if (events.length === 0) {
+							document.getElementById('eventsContainer').innerHTML = "<p>No events available.</p>";
+							return;
+						}
+						let eventsHtml = '';
+						for (let i = 0; i < events.length; i++) {
+							const event = events[i];
+							eventsHtml += `
+								<div class="card mb-3">
+									<div class="card-body">
+										<h5 class="card-title">Event ID: ${event.event_id}</h5>
+										<p class="card-text">Event Name: ${event.event_name}</p>
+										<p class="card-text">Event Price: ${event.event_price}</p>
+										<p class="card-text">Event Description: ${event.event_description}</p>
+										<p class="card-text">Event Image: ${event.event_image}</p>
+										<p class="card-text">Event Date & Time: ${event.event_datetime}</p>
+									</div>
+								</div>
+							`;
+						}
+						document.getElementById('eventsContainer').innerHTML = eventsHtml;
+					})
+					.catch(error => {
+						console.error('Error fetching events:', error);
+						document.getElementById('eventsContainer').innerHTML = "<p>Error fetching events.</p>";
+					});
+			}
+		
+			// Fetch events when the page loads
+			fetchEvents();
+		</script>
 	</head>
 	<body class="homepage is-preload">
 		<div id="page-wrapper">
@@ -18,18 +58,16 @@
 				<section id="header">
 
 					<!-- Logo -->
-						<h1><a href="index.html">Insert Event Website Name</a></h1>
+						<h1><a href="event.html">TicketMaster</a></h1>
 
 					<!-- Nav -->
 						<nav id="nav">
 							<ul>
-								<li class="current"><a href="index.html">Home</a></li>
-								<!--
+								<li class="current"><a href="event.html">Home</a></li>
 								<li>
 									<a href="#">View More</a>
 									<ul>
-										
-										<li><a href="http://127.0.0.1:5000/event/001">Event 001</a></li>
+										<li><a href="#">Lorem ipsum dolor</a></li>
 										<li><a href="#">Magna phasellus</a></li>
 										<li><a href="#">Etiam dolore nisl</a></li>
 										<li>
@@ -42,18 +80,14 @@
 												<li><a href="#">Dolore adipiscing</a></li>
 											</ul>
 										</li>
-										
 										<li><a href="#">Veroeros feugiat</a></li>
 									</ul>
 								</li>
-				
 								<li><a href="left-sidebar.html">Left Sidebar</a></li>
 								<li><a href="right-sidebar.html">Right Sidebar</a></li>
-								-->
+								<!-- insert account.html here-->
 								<li><a href="account.html">Account</a></li>
-								
 							</ul>
-
 						</nav>
 
 					<!-- Banner -->
@@ -119,9 +153,11 @@
 											<h2>Events</h2>
 										</header>
 										<div class="row">
+											<div id="eventsContainer">
+											</div>
 											<div class="col-4 col-6-medium col-12-small">
 												<section class="box">
-													<a href="http://127.0.0.1:5000/event/001" class="image featured"><img src="images/pic02.jpg" alt="" /></a>
+													<a href="http://127.0.0.1:5000/event/001" class="image featured"><img src="images/event_image_001.jpg" alt="" width="200" height="200"/></a>
 													<header>
 														<h3>Zouk</h3>
 													</header>
@@ -135,7 +171,7 @@
 											</div>
 											<div class="col-4 col-6-medium col-12-small">
 												<section class="box">
-													<a href="http://127.0.0.1:5000/event/002" class="image featured"><img src="images/pic06.jpg" alt="" /></a>
+													<a href="http://127.0.0.1:5000/event/002" class="image featured"><img src="images/event_image_002.jpg" alt="" width="200" height="200"/></a>
 													<header>
 														<h3>SMU</h3>
 													</header>
@@ -149,7 +185,7 @@
 											</div>
 											<div class="col-4 col-6-medium col-12-small">
 												<section class="box">
-													<a href="http://127.0.0.1:5000/event/003" class="image featured"><img src="images/pic07.jpg" alt="" /></a>
+													<a href="http://127.0.0.1:5000/event/003" class="image featured"><img src="images/event_image_003.jpg" alt="" width="200" height="200"/></a>
 													<header>
 														<h3>Eras Tour</h3>
 													</header>
