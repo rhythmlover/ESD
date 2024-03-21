@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
 
-	function fetchReviews(eventId) {
+		function fetchReviews(eventId) {
             axios.get(`http://localhost:5001/reviews/${eventId}`)
                 .then(response => {
                     const reviews = response.data.data;
@@ -26,10 +26,11 @@
 						reviewsHtml += `
 							<div class="card mb-3">
 								<div class="card-body">
-									<h5 class="card-title">User ID: ${review.user_id}</h5>
+									<h5 class="card-title">User ID: ${review.user_id} | Review ID: ${review.review_id}</h5>
 									<p class="card-text">Created At: ${review.created_at}</p>
 									<p class="card-text">Rating: ${review.rating}</p>
 									<p class="card-text">Comment: ${review.comment}</p>
+									<p class="card-text">Admin Comment: ${review.admin_comment}</p>
 								</div>
 							</div>
 						`;
@@ -43,11 +44,11 @@
         }
 
         const eventId = "your_event_id";
-        fetchReviews(202);
+        fetchReviews(203);
     </script>
 
 	<head>
-		<title>User Reviews - Event 202</title>
+		<title>User Reviews - Event 103 [Admin]</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
@@ -60,12 +61,12 @@
 				<section id="header">
 
 					<!-- Logo -->
-						<h1><a href="index.html">TicketMaster</a></h1>
+						<h1><a href="event.html">TicketMaster</a></h1>
 
 					<!-- Nav -->
 						<nav id="nav">
 							<ul>
-								<li><a href="index.html">Home</a></li>
+								<li><a href="event.html">Home</a></li>
 								<li>
 									<a href="#">Dropdown</a>
 									<ul>
@@ -99,14 +100,14 @@
 							<div class="col-8 col-12-medium imp-medium">
 								<!-- Content -->
 									<article class="box post">
-										<a href="#" class="image featured"><img src="images/drake_club_event_102.jpg" alt="" /></a>
+										<a href="#" class="image featured"><img src="images/3_361_5d7ca8f3-c942-49d1-8384-7fcd47203413.webp" alt="" /></a>
 										<header>
-											<h2>Reviews for Event 202 - Night at Marquee:</h2>
+											<h2>Reviews for Event 203 - Bruno Mars Pre Game:</h2>
 											<p>Over "XXX" Reviews</p>
 										</header>
 										<div id="reviewsContainer">
                                         </div>
-										<a href="user_add_review.html" class="button">Create Review</a>
+										<a href="admin_add_comment.html" class="button">Add Comment</a>
 									</article>
 
 							</div>

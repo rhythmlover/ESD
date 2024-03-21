@@ -132,7 +132,37 @@ def update_admin_review(event_id, review_id):
     ---
     parameters:
         -   in: path
-            name: event_id
+            name: event_id        function fetchReviews(eventId) {
+            axios.get(`http://localhost:5001/reviews/${eventId}`)
+                .then(response => {
+                    const reviews = response.data.data;
+                    if (reviews.length === 0) {
+                        document.getElementById('reviewsContainer').innerHTML = "<p>No reviews available.</p>";
+                        return;
+                    }
+					let reviewsHtml = '';
+					for (let i = 0; i < reviews.length; i++) {
+						const review = reviews[i];
+						const adminCommentHtml = review.admin_comment ? `<p class="card-text">Admin Comment: ${review.admin_comment}</p>` : '';
+						reviewsHtml += `
+							<div class="card mb-3">
+								<div class="card-body">
+									<h5 class="card-title">User ID: ${review.user_id}</h5>
+									<p class="card-text">Created At: ${review.created_at}</p>
+									<p class="card-text">Rating: ${review.rating}</p>
+									<p class="card-text">Comment: ${review.comment}</p>
+									${adminCommentHtml}
+								</div>
+							</div>
+						`;
+					}
+					document.getElementById('reviewsContainer').innerHTML = reviewsHtml;
+					})
+                .catch(error => {
+                    console.error('Error fetching reviews:', error);
+                    document.getElementById('reviewsContainer').innerHTML = "<p>Error fetching reviews.</p>";
+                });
+        }
             required: true
         -   in: path
             name: review_id

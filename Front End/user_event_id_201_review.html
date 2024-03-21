@@ -11,8 +11,8 @@
     <!-- Axios -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-
-		function fetchReviews(eventId) {
+        
+        function fetchReviews(eventId) {
             axios.get(`http://localhost:5001/reviews/${eventId}`)
                 .then(response => {
                     const reviews = response.data.data;
@@ -23,6 +23,7 @@
 					let reviewsHtml = '';
 					for (let i = 0; i < reviews.length; i++) {
 						const review = reviews[i];
+						const adminCommentHtml = review.admin_comment ? `<p class="card-text">Admin Comment: ${review.admin_comment}</p>` : '';
 						reviewsHtml += `
 							<div class="card mb-3">
 								<div class="card-body">
@@ -30,6 +31,7 @@
 									<p class="card-text">Created At: ${review.created_at}</p>
 									<p class="card-text">Rating: ${review.rating}</p>
 									<p class="card-text">Comment: ${review.comment}</p>
+									${adminCommentHtml}
 								</div>
 							</div>
 						`;
@@ -43,11 +45,11 @@
         }
 
         const eventId = "your_event_id";
-        fetchReviews(203);
+        fetchReviews(201);
     </script>
 
 	<head>
-		<title>User Reviews - Event 102</title>
+		<title>User Reviews - Event 201</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
@@ -60,12 +62,12 @@
 				<section id="header">
 
 					<!-- Logo -->
-						<h1><a href="index.html">TicketMaster</a></h1>
+						<h1><a href="event.html">TicketMaster</a></h1>
 
 					<!-- Nav -->
 						<nav id="nav">
 							<ul>
-								<li><a href="index.html">Home</a></li>
+								<li><a href="event.html">Home</a></li>
 								<li>
 									<a href="#">Dropdown</a>
 									<ul>
@@ -99,9 +101,9 @@
 							<div class="col-8 col-12-medium imp-medium">
 								<!-- Content -->
 									<article class="box post">
-										<a href="#" class="image featured"><img src="images/3_361_5d7ca8f3-c942-49d1-8384-7fcd47203413.webp" alt="" /></a>
+										<a href="#" class="image featured"><img src="images/279053094_5457982687569125_8176487663135410190_n.jpg" alt="" /></a>
 										<header>
-											<h2>Reviews for Event 203 - Bruno Mars Pre Game:</h2>
+											<h2>Reviews for Event 201 - Singapore Pub Crawl:</h2>
 											<p>Over "XXX" Reviews</p>
 										</header>
 										<div id="reviewsContainer">
