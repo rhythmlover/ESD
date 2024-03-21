@@ -14,6 +14,10 @@ ticket_URL = "http://localhost:5001/tickets"
 payment_URL = "http://localhost:5002/process_payment"
 email_URL = "http://localhost:5003/send_email"
 
+# Using RabbitMQ as the message broker
+error_URL = "http://localhost:5100/log/error"
+activity_log_URL = "http://localhost:5100/log/activity"
+
 exchangename = "ticket_topic"
 exchangetype = "topic"
 
@@ -28,51 +32,167 @@ if not amqp_connection.check_exchange(channel, exchangename, exchangetype):
 def purchase_ticket():
     if request.is_json:
         try:
-            ticket_request = request.get_json()
-            user_id = ticket_request.get('user_id')
+            body_request = request.get_json()
+            print("\nReceived a refund in JSON:", body_request)
 
             # Step 1: Fetch user details
+            user_id = body_request.get('user_id')
             user_response = get_user_data(user_id)
             if not user_response:
                 return jsonify({"code": 404, "message": "User not found."}), 404
 
-            # Step 2: Create Ticket
+            # Create Ticket
             print('\n-----Invoking Ticket microservice-----')
-            ticket_creation_data = invoke_http(f"{ticket_URL}/create", method='POST', json=ticket_request)
+            ticket_creation_data = invoke_http(f"{ticket_URL}/create", method='POST', json=body_request)
+            print('creating_ticket_data:', ticket_creation_data)
+            ticket_message = json.dumps(ticket_creation_data)        
+
             if ticket_creation_data["code"] not in range(200, 300):
-                return jsonify(ticket_creation_data), ticket_creation_data["code"]
+                print('\n-----Invoking error microservice as create ticket fails-----')
+                print('\n-----Publishing the (create ticket error) message with routing_key=create_ticket.error-----')
+
+                invoke_http(error_URL, method="POST", json=ticket_creation_data)
+                channel.basic_publish(exchange=exchangename, routing_key="create_ticket.error", 
+                    body=ticket_message, properties=pika.BasicProperties(delivery_mode = 2))
+                # make message persistent within the matching queues until it is received by some receiver 
+                # (the matching queues have to exist and be durable and bound to the exchange)
+
+                print("\nCreate ticket status ({:d}) published to the RabbitMQ Exchange:".format(ticket_creation_data["code"]), ticket_creation_data)
+
+                print("\n-----Invoking Ticket Microservice failed-----")
+                # Return error
+                return {
+                    "code": 500,
+                    "message": "Failed to create ticket."
+                }
             
-            # Get ticket details
-            ticket_details_data = invoke_http(f"{ticket_URL}/{ticket_request.get('ticket_id')}", method='GET')
+            print('\n-----Invoking activity_log microservice-----')
+            print('\n-----Publishing the (ticket creation data info) message with routing_key=create_ticket.info-----')
+            invoke_http(activity_log_URL, method="POST", json=ticket_creation_data)
+            channel.basic_publish(exchange=exchangename, routing_key="create_ticket.info", 
+                body=ticket_message)
+            print("\nTicket creation published to RabbitMQ Exchange.")
+
             print('\n-----Successfully Invoked Ticket microservice-----')
 
-            # Step 3: Process Payment
-            print('\n-----Invoking Payment microservice-----')
+            # Get ticket details for payment process
+            print('\n-----Invoking Ticket microservice-----')
+            print('\n-----Getting ticket details for payment-----')
+            ticket_details_data = invoke_http(f"{ticket_URL}/{body_request.get('ticket_id')}", method='GET')
+            print('ticket_details_data:', ticket_details_data)
+            ticket_details_message = json.dumps(ticket_details_data)
+
+            if ticket_details_data["code"] not in range(200, 300):
+                print('\n-----Invoking error microservice as get ticket details fails-----')
+                print('\n-----Publishing the (get ticket details error) message with routing_key=getTicketDetails.error-----')
+
+                invoke_http(error_URL, method="POST", json=ticket_details_data)
+                channel.basic_publish(exchange=exchangename, routing_key="getTicketDetails.error", 
+                    body=ticket_details_message, properties=pika.BasicProperties(delivery_mode = 2))
+                # make message persistent within the matching queues until it is received by some receiver 
+                # (the matching queues have to exist and be durable and bound to the exchange)
+
+                print("\nGet ticket details status ({:d}) published to the RabbitMQ Exchange:".format(ticket_details_data["code"]), ticket_details_data)
+
+                print("\n-----Invoking Ticket Microservice failed-----")
+                # Return error
+                return {
+                    "code": 500,
+                    "message": "Failed to get ticket details."
+                }
+            
+            print('\n-----Invoking activity_log microservice-----')
+            print('\n-----Publishing the (ticket details data info) message with routing_key=getTicketDetails.info-----')
+            invoke_http(activity_log_URL, method="POST", json=ticket_details_data)
+            channel.basic_publish(exchange=exchangename, routing_key="getTicketDetails.info",
+                body=ticket_details_message)
+            print("\nTicket details published to RabbitMQ Exchange.")
+
+            print('\n-----Successfully Invoked Ticket microservice-----')
+            print('\n-----Successfully Get Ticket Details for payment-----')
+
+            # Process Payment
+            print('\n-----Invoking Payment microservice-----')            
             payment_response = invoke_http(payment_URL, method='POST', json={
                 "user_id": user_id,
                 "ticket_id": ticket_details_data['data']["ticket_id"],
-                "amount": ticket_request.get('amount'),
+                "amount": body_request.get('amount'),
                 "currency": "sgd",
                 # Hardcoded payment method and customer id for testing
                 "payment_method_id": "pm_1OweLXKfHG7YK88cDu9xlKSL",
                 "customer_id": "cus_PmCkFZartm4jWy"
             })
-            if payment_response["code"] == 200:
-                payment_id = payment_response["data"]["id"]
+            print('payment_response:', payment_response)
+            payment_message = json.dumps(payment_response)
 
-                ticket_update_data = {
-                    "payment_id": payment_id
+            if payment_response["code"] not in range(200, 300):
+                print('\n-----Invoking error microservice as process payment fails-----')
+                print('\n-----Publishing the (process payment error) message with routing_key=processPayment.error-----')
+
+                invoke_http(error_URL, method="POST", json=payment_response)
+                channel.basic_publish(exchange=exchangename, routing_key="processPayment.error", 
+                    body=payment_message, properties=pika.BasicProperties(delivery_mode = 2))
+                # make message persistent within the matching queues until it is received by some receiver 
+                # (the matching queues have to exist and be durable and bound to the exchange)
+
+                print("\nProcess payment status ({:d}) published to the RabbitMQ Exchange:".format(payment_response["code"]), payment_response)
+
+                print("\n-----Invoking Payment Microservice failed-----")
+                # Return error
+                return {
+                    "code": 500,
+                    "message": "Failed to process payment."
                 }
-                update_response = invoke_http(f"{ticket_URL}/{ticket_details_data['data']['ticket_id']}/payment", method='PUT', json=ticket_update_data)
-                
-                if update_response["code"] not in range(200, 300):
-                    return jsonify(update_response), update_response["code"]
-            else:
-                return jsonify(payment_response), payment_response["code"]  
-            print('\n-----Successfully Invoked Payment microservice-----')  
+            
+            print('\n-----Invoking activity_log microservice-----')
+            print('\n-----Publishing the (payment response data info) message with routing_key=process_payment.info-----')
+            invoke_http(activity_log_URL, method="POST", json=payment_response)
+            channel.basic_publish(exchange=exchangename, routing_key="process_payment.info",
+                body=payment_message)
+            print("\nPayment response published to RabbitMQ Exchange.")
+            
+            print('\n-----Successfully Invoked Payment microservice-----')
+
+            # Update Ticket
+            print('\n-----Invoking Ticket microservice-----')
+            payment_id = payment_response["data"]["id"]
+            update_response = invoke_http(f"{ticket_URL}/{ticket_details_data['data']['ticket_id']}/payment", method='PUT', json={
+                "payment_id": payment_id,
+                "charge_id": payment_response["data"]["charge_id"]
+            })
+            print('update_response:', update_response)
+            update_message = json.dumps(update_response)
+
+            if update_response["code"] not in range(200, 300):
+                print('\n-----Invoking error microservice as update ticket fails-----')
+                print('\n-----Publishing the (update ticket error) message with routing_key=update_ticket.error-----')
+
+                invoke_http(error_URL, method="POST", json=update_response)
+                channel.basic_publish(exchange=exchangename, routing_key="update_ticket.error", 
+                    body=update_message, properties=pika.BasicProperties(delivery_mode = 2))
+                # make message persistent within the matching queues until it is received by some receiver 
+                # (the matching queues have to exist and be durable and bound to the exchange)
+
+                print("\nUpdate ticket status ({:d}) published to the RabbitMQ Exchange:".format(update_response["code"]), update_response)
+
+                print("\n-----Invoking Ticket Microservice failed-----")
+                # Return error
+                return {
+                    "code": 500,
+                    "message": "Failed to update ticket."
+                }
+            
+            print('\n-----Invoking activity_log microservice-----')
+            print('\n-----Publishing the (update ticket response data info) message with routing_key=update_ticket.info-----')
+            invoke_http(activity_log_URL, method="POST", json=update_response)
+            channel.basic_publish(exchange=exchangename, routing_key="update_ticket.info",
+                body=update_message)
+            print("\nUpdate ticket published to RabbitMQ Exchange.")
+
+            print('\n-----Successfully Invoked Ticket microservice-----')
 
             print('\n-----Invoking Email microservice-----')
-            # Step 5: Send Notification
+            # Send Notification
             html_content = f"""
             <html>
                 <body>
@@ -92,14 +212,43 @@ def purchase_ticket():
                 </body>
             </html>
             """
-            # html_content_json = json.dumps({**payment_response["data"], **ticket_details_data["data"]["amount"]})
             email_response = invoke_http(email_URL, method='POST', json={
                 "to_email": user_response["email"],
                 "html_content": html_content
             })
+            print('email_response:', email_response)
+            email_message = json.dumps(email_response)
+
             if email_response["code"] not in range(200, 300):
-                return jsonify(email_response), email_response["code"]
-            print('\n-----Successfully Invoked Email microservice-----')  
+                print('\n-----Invoking error microservice as send email fails-----')
+                print('\n-----Publishing the (get email error) message with routing_key=send_email.error-----')
+
+                invoke_http(error_URL, method="POST", json=email_response)
+                channel.basic_publish(exchange=exchangename, routing_key="send_email.error", 
+                    body=email_message, properties=pika.BasicProperties(delivery_mode = 2))
+                # make message persistent within the matching queues until it is received by some receiver 
+                # (the matching queues have to exist and be durable and bound to the exchange)
+
+                # - reply from the invocation is not used;
+                # continue even if this invocation fails        
+                print("\nSend email ({:d}) published to the RabbitMQ Exchange:".format(email_response["code"]), email_response)
+
+                print("\n-----Invoking Email Microservice failed-----")
+
+                # Return error
+                return {
+                    "code": 500,
+                    "message": "Failed to send email."
+                }
+            
+            print('\n-----Invoking activity_log microservice-----')
+            print('\n-----Publishing the (email response data info) message with routing_key=email.info-----')
+            invoke_http(activity_log_URL, method="POST", json=email_response)
+            channel.basic_publish(exchange=exchangename, routing_key="email.info", 
+                body=email_message)
+            print("\nEmail response published to RabbitMQ Exchange.")
+
+            print('\n-----Successfully Invoked Email microservice-----')
             
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -112,10 +261,12 @@ def purchase_ticket():
                 "message": "purchase_ticket.py internal error: " + ex_str
             }), 500
 
+        print('\n-----Successfully Purchased Ticket-----')
         return jsonify({
             "code": 201,
             "message": "Ticket purchased successfully."
         }), 201
+    
     else:
         return jsonify({
             "code": 400,

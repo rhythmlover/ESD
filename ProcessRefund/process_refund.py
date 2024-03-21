@@ -18,7 +18,7 @@ ticket_URL = "http://localhost:5005/tickets"
 
 # Using RabbitMQ as the message broker
 error_URL = "http://localhost:5100/log/error"
-refund_log_URL = "http://localhost:5100/log/activity"
+activity_log_URL = "http://localhost:5100/log/activity"
 
 exchangename = "refund_topic" # exchange name
 exchangetype = "topic" # use a 'topic' exchange to enable interaction
@@ -93,6 +93,7 @@ def createRefund(refund, user_response):
     
     if code not in range(200, 300):
         # Inform the error microservice
+        print('\n-----Invoking error microservice as refund creation fails-----')
         print('\n-----Publishing the (refund error) message with routing_key=refund.error-----')
 
         invoke_http(error_URL, method="POST", json=refund_result)
@@ -111,9 +112,9 @@ def createRefund(refund, user_response):
             "message": "Refund creation failure sent for error handling."
         }
 
-    print('\n-----Invoking refund_log microservice-----')
+    print('\n-----Invoking activity_log microservice-----')
     print('\n-----Publishing the (refund info) message with routing_key=refund.info-----')        
-    invoke_http(refund_log_URL, method="POST", json=refund_result)
+    invoke_http(activity_log_URL, method="POST", json=refund_result)
     channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
         body=refund_message)
     print("\nRefund published to RabbitMQ Exchange.")
@@ -167,9 +168,9 @@ def createRefund(refund, user_response):
             "message": "Email failure sent for error handling."
         }
     
-    print('\n-----Invoking refund_log microservice-----')
+    print('\n-----Invoking activity_log microservice-----')
     print('\n-----Publishing the (email info) message with routing_key=email.info-----')
-    invoke_http(refund_log_URL, method="POST", json=email_refund_result)
+    invoke_http(activity_log_URL, method="POST", json=email_refund_result)
     channel.basic_publish(exchange=exchangename, routing_key="email.info",
         body=email_refund_message)
     print("\nEmail published to RabbitMQ Exchange.")
@@ -213,9 +214,9 @@ def processRefund(refund, user_response):
                 "message": "Ticket details failure sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (ticket info) message with routing_key=ticket.info-----')        
-        invoke_http(refund_log_URL, method="POST", json=ticket_response)
+        invoke_http(activity_log_URL, method="POST", json=ticket_response)
         channel.basic_publish(exchange=exchangename, routing_key="ticket.info",
             body=ticket_message)
         print("\Ticket published to RabbitMQ Exchange.")
@@ -249,12 +250,12 @@ def processRefund(refund, user_response):
                 "message": "Refund payment failure sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (payment info) message with routing_key=payment.info-----')        
-        invoke_http(refund_log_URL, method="POST", json=payment_result)
+        invoke_http(activity_log_URL, method="POST", json=payment_result)
         channel.basic_publish(exchange=exchangename, routing_key="payment.info",
             body=payment_message)
-        print("\Payment published to RabbitMQ Exchange.")
+        print("\nPayment published to RabbitMQ Exchange.")
 
         print('\n-----Successfully Invoked Payment Microservice-----')
         
@@ -289,9 +290,9 @@ def processRefund(refund, user_response):
                 "message": "Updating refund details failed sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (update refund info) message with routing_key=refund.info-----')        
-        invoke_http(refund_log_URL, method="POST", json=update_refund_result)
+        invoke_http(activity_log_URL, method="POST", json=update_refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
             body=update_refund_message)
         print("\nRefund published to RabbitMQ Exchange.")
@@ -345,9 +346,9 @@ def processRefund(refund, user_response):
                 "message": "Email failure sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (email info) message with routing_key=email.info-----')        
-        invoke_http(refund_log_URL, method="POST", json=email_refund_result)
+        invoke_http(activity_log_URL, method="POST", json=email_refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="email.info", 
             body=email_refund_message)
         print("\Email published to RabbitMQ Exchange.")
@@ -393,9 +394,9 @@ def processRefund(refund, user_response):
                 "message": "Updating refund details failed sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (update refund info) message with routing_key=refund.info-----')        
-        invoke_http(refund_log_URL, method="POST", json=update_refund_result)
+        invoke_http(activity_log_URL, method="POST", json=update_refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="refund.info", 
             body=update_refund_message)
         print("\nRefund published to RabbitMQ Exchange.")
@@ -449,9 +450,9 @@ def processRefund(refund, user_response):
                 "message": "Email failure sent for error handling."
             }
         
-        print('\n-----Invoking refund_log microservice-----')
+        print('\n-----Invoking activity_log microservice-----')
         print('\n-----Publishing the (email info) message with routing_key=email.info-----')
-        invoke_http(refund_log_URL, method="POST", json=email_refund_result)
+        invoke_http(activity_log_URL, method="POST", json=email_refund_result)
         channel.basic_publish(exchange=exchangename, routing_key="email.info", 
             body=email_refund_message)
         print("\Email published to RabbitMQ Exchange.")
