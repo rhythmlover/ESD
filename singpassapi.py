@@ -52,7 +52,7 @@ def get_dob():
 
             # Check if the person is 21 years of age or above
             is_21_or_above = age >= 21
-            return jsonify({"is_21_or_above": is_21_or_above}), 200
+            return jsonify({"Person is above age limit": is_21_or_above}), 200
         else:
             return jsonify({"error": "DOB not found in response"}), 404
     except requests.RequestException as e:
