@@ -1,0 +1,198 @@
+<!DOCTYPE HTML>
+<!--
+    Dopetrope by HTML5 UP
+    html5up.net | @ajlkn
+    Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html lang="en">
+<head>
+    <title>Add Event</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body class="left-sidebar is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <section id="header">
+
+            <!-- Logo -->
+            <h1><a href="event.html">TicketMaster</a></h1>
+
+            <!-- Nav -->
+            <nav id="nav">
+                <ul>
+                    <li><a href="event.html">Home</a></li>
+                    <li>
+                        <a href="#">Dropdown</a>
+                        <ul>
+                            <li><a href="#">Lorem ipsum dolor</a></li>
+                            <li><a href="#">Magna phasellus</a></li>
+                            <li><a href="#">Etiam dolore nisl</a></li>
+                            <li>
+                                <a href="#">Phasellus consequat</a>
+                                <ul>
+                                    <li><a href="#">Magna phasellus</a></li>
+                                    <li><a href="#">Etiam dolore nisl</a></li>
+                                    <li><a href="#">Veroeros feugiat</a></li>
+                                    <li><a href="#">Nisl sed aliquam</a></li>
+                                    <li><a href="#">Dolore adipiscing</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#">Veroeros feugiat</a></li>
+                        </ul>
+                    </li>
+                    <li class="current"><a href="left-sidebar.html">Left Sidebar</a></li>
+                    <li><a href="right-sidebar.html">Right Sidebar</a></li>
+                    <li><a href="no-sidebar.html">No Sidebar</a></li>
+                </ul>
+            </nav>
+
+        </section>
+
+        <!-- Main -->
+        <section id="main">
+            <div class="container">
+                <div class="col-8 col-12-medium imp-medium">
+                    <!-- Content -->
+                    <article class="box post">
+                        <header>
+                            <h2>Add Event</h2>
+                        </header>
+                        <form id="eventForm" onsubmit="submitEvent(); return false;">
+                            <div class="form-group">
+                                <label for="event_id">Event ID:</label>
+                                <input type="text" id="event_id" name="event_id" class="form-control" placeholder="Enter Event ID" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="event_name">Event Name:</label>
+                                <input type="text" id="event_name" name="event_name" class="form-control" placeholder="Enter Event Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="event_datetime">Event Date Time:</label>
+                                <input type="datetime-local" id="event_datetime" name="event_datetime" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_price">Event Price</label>
+                                <input type="number" id="event_price" name="event_price" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_image">Event Image:</label>
+                                <input type="test" id="event_image" name="event_image" class="form-control" placeholder="Enter Event Image URL">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_description">Event Description:</label>
+                                <textarea id="event_description" name="event_description" class="form-control" rows="3" placeholder="Enter Event Description"></textarea>
+                            </div>
+                            <br>
+                            <button type="submit" class="button">Submit</button>
+                        </form>                                                                                                                                 
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <section id="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-4 col-12-medium">
+                        <section>
+                            <header>
+                                <h2>TicketMaster</h2>
+                            </header>
+                            <ul class="social">
+                                <li><a class="icon brands fa-facebook-f" href="#"><span class="label">Facebook</span></a></li>
+                                <li><a class="icon brands fa-twitter" href="#"><span class="label">Twitter</span></a></li>
+                                <li><a class="icon brands fa-dribbble" href="#"><span class="label">Dribbble</span></a></li>
+                                <li><a class="icon brands fa-tumblr" href="#"><span class="label">Tumblr</span></a></li>
+                                <li><a class="icon brands fa-linkedin-in" href="#"><span class="label">LinkedIn</span></a></li>
+                            </ul>
+                        </section>
+                    </div>
+                    <section>
+                        <h3>Address</h3>
+                        <p>
+                            Untitled Incorporated<br />
+                            1234 Somewhere Road Suite<br />
+                            Nashville, TN 00000-0000
+                        </p>
+                    </section>
+                    <section>
+                        <h3>Mail</h3>
+                        <p><a href="#">someone@untitled.tld</a></p>
+                    </section>
+                    <section>
+                        <h3>Phone</h3>
+                        <p>(800) 000-0000</p>
+                    </section>
+                </div>
+                <div class="col-12">
+
+                    <!-- Copyright -->
+                    <div id="copyright">
+                        <ul class="links">
+                            <li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <script>
+        function submitEvent() {
+            var event_id = document.getElementById("event_id").value;
+            var event_name = document.getElementById("event_name").value;
+            var event_datetime = document.getElementById("event_name").value;
+            var event_price = document.getElementById("event_price").value;
+            var event_image = document.getElementById("event_name").value;
+            var event_description = document.getElementById("event_description").value;
+
+            fetch('http://localhost:5000/event/' + event_id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event_id: event_id,
+                    event_name: event_name,
+                    event_datetime: event_datetime,
+                    event_price: event_price,
+                    event_image: event_image,
+                    event_description: event_description
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Event submitted successfully!");
+                    window.location.href = "event.html";
+                } else {
+                    throw new Error('Event submission failed!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Failed to create event. Please try again later.");
+            });
+        }
+
+        document.getElementById("eventForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            submitReview();
+        });
+    </script>
+
+</body>
+</html>
