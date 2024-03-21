@@ -51,6 +51,10 @@ def get_dob():
             today = datetime.today()
             age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
+            # to change to create false scenario
+            # age = 19
+
+
             # Check if the person is 21 years of age or above
             is_21_or_above = age >= 21
             return jsonify({"Person is above age limit": is_21_or_above}), 200
