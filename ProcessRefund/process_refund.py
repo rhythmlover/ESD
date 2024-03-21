@@ -206,7 +206,7 @@ def processRefund(refund, user_response):
         print('\n\n-----Invoking refund_log microservice-----')
         print('\n\n-----Publishing the (payment info) message with routing_key=payment.info-----')        
         invoke_http(refund_log_URL, method="POST", json=payment_result)
-        channel.basic_publish(exchange=exchangename, routing_key="payment.info", 
+        channel.basic_publish(exchange=exchangename, routing_key="payment.info",
             body=payment_message)
         print("Refund published to RabbitMQ Exchange.\n")
         
@@ -307,7 +307,7 @@ def processRefund(refund, user_response):
         update_refund_result = invoke_http(refund_URL, method="PUT", json={
             "event_id": refund['event_id'],
             "ticket_id": refund['ticket_id'],
-            "refund_status": "approved"
+            "refund_status": "rejected"
         })
         print("update_refund_result:", update_refund_result, '\n')
         update_refund_message = json.dumps(update_refund_result)
