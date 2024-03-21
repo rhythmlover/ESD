@@ -179,7 +179,7 @@ def update_refund_status():
         404:
             description: Missing required fields in body
     """
-    required_fields = ['event_id', 'ticket_id','refund_status']
+    required_fields = ['event_id', 'ticket_id', 'refund_status']
     if not all(field in request.json for field in required_fields):
         return jsonify(
             {
@@ -198,7 +198,7 @@ def update_refund_status():
         {
             "code": 200,
             "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully.",
-            "data" : {
+            "data": {
                 "event_id": request.json['event_id'],
                 "ticket_id": request.json['ticket_id']
             },
