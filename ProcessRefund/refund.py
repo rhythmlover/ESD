@@ -51,6 +51,43 @@ def get_event_refunds(event_id):
         }
     ), 404
 
+@app.route("/refunds/<string:event_id>/<string:ticket_id>")
+def get_ticket_refund_details(event_id, ticket_id):
+    """
+    Retrieves refunds details for a specific ticket.
+    ---
+    parameters:
+        -   in: path
+            name: event_id
+            required: true
+        -   in: path
+            name: ticket_id
+            required: true
+    responses:
+        200:
+            description: Return the refunds for the event with the specified event_id and ticket_id
+        404:
+            description: No refunds for this event found or no ticket with the specified ticket_id found.
+    """
+    refunds_ref = db.collection("refunds").document(
+        event_id).collection("event_refunds").document(ticket_id)
+    docs = refunds_ref.get()
+
+    if docs.exists:
+        data = docs.to_dict()
+        return jsonify(
+            {
+                "code": 200,
+                "data": data
+            }
+        )
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No refunds for this event found."
+        }
+    ), 404
+
 
 @app.route("/refunds", methods=['POST'])
 def create_refund():
@@ -121,17 +158,11 @@ def create_refund():
 
 
 @app.route("/refunds", methods=["PUT"])
-def update_book():
+def update_refund_status():
     """
     Update a refund status for a specific ticket.
     ---
     parameters:
-        -   in: path
-            name: event_id
-            required: true
-        -   in: path
-            name: ticket_id
-            required: true
     requestBody:
         description: Refund status details
         required: true
@@ -148,7 +179,7 @@ def update_book():
         404:
             description: Missing required fields in body
     """
-    required_fields = ['event_id', 'ticket_id','refund_status']
+    required_fields = ['event_id', 'ticket_id', 'refund_status']
     if not all(field in request.json for field in required_fields):
         return jsonify(
             {
@@ -166,7 +197,12 @@ def update_book():
     return jsonify(
         {
             "code": 200,
-            "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully."
+            "message": "Refund request status of ticket ID: "+ request.json['ticket_id'] + " changed to " + request.json['refund_status'] + " successfully.",
+            "data": {
+                "event_id": request.json['event_id'],
+                "ticket_id": request.json['ticket_id']
+            },
+            "refund_status": request.json['refund_status']
         }
     ), 200
 

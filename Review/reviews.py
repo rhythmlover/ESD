@@ -100,12 +100,15 @@ def create_review(event_id):
 
         doc_ref = db.collection("reviews").document(
             event_id).collection("event_reviews").document()
+        review_id = doc_ref.id
         doc_ref.set({
+            'review_id': review_id,
             'rating': request.json['rating'],
             'created_at': formatted_time,
             'user_id': request.json['user_id'],
             'event_id': event_id,
-            'comment': request.json['comment']
+            'comment': request.json['comment'],
+            'admin_comment': ''
         })
 
         return jsonify(
@@ -119,6 +122,68 @@ def create_review(event_id):
             {
                 "code": 500,
                 "message": "An error occurred while creating the review. " + str(e)
+            }
+        ), 500
+    
+@app.route("/reviews/<string:event_id>/<string:review_id>", methods=['PUT'])
+def update_admin_review(event_id, review_id):
+    """
+    Update an admin comment for a specific event review.
+    ---
+    parameters:
+        -   in: path
+            name: event_id
+            required: true
+        -   in: path
+            name: review_id
+            required: true
+    requestBody:
+        description: Review details
+        required: true
+        content:
+            application/json:
+                schema:
+                    properties:
+                        admin_comment: 
+                            type: string
+                            description: Admin's comment about the event review
+
+    responses:
+        200:
+            description: Admin comment for event review updated successfully
+        400:
+            description: Missing required fields in body. Please provide admin_comment.
+        500:
+            description: Internal server error
+
+    """
+    try:
+        required_fields = ['admin_comment']
+        if not all(field in request.json for field in required_fields):
+            return jsonify(
+                {
+                    "code": 400,
+                    "message": "Missing required fields. Please provide admin_comment."
+                }
+            ), 400
+
+        doc_ref = db.collection("reviews").document(
+            event_id).collection("event_reviews").document(review_id)
+        doc_ref.update({
+            'admin_comment': request.json['admin_comment']
+        })
+
+        return jsonify(
+            {
+                "code": 200,
+                "message": "Admin comment for review updated successfully."
+            }
+        ), 200
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 500,
+                "message": "An error occurred while updating the review. " + str(e)
             }
         ), 500
 

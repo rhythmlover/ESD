@@ -54,8 +54,8 @@ def purchase_ticket():
                 "amount": ticket_request.get('amount'),
                 "currency": "sgd",
                 # Hardcoded payment method and customer id for testing
-                "payment_method_id": "pm_1OvsxW2LHSKllIVVJ6xs1nRw",
-                "customer_id": "cus_PlPj7w7jUycNMl"
+                "payment_method_id": "pm_1OweLXKfHG7YK88cDu9xlKSL",
+                "customer_id": "cus_PmCkFZartm4jWy"
             })
             if payment_response["code"] == 200:
                 payment_id = payment_response["data"]["id"]

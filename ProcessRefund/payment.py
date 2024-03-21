@@ -13,7 +13,7 @@ db = firestore.client()
 # Global variables
 now = datetime.now()
 formatted_time = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-stripe.api_key = "sk_test_51OsyUO2LHSKllIVVLicsqNteZkHVwC6ViXLkEJtMTqxPVa3paUucKASoYfiIKGB06v3Atrf1UMmQ41kg1F3c8SIH00RBqtmlXJ"
+stripe.api_key = "sk_test_51OtVqgKfHG7YK88cdJNGkMVFtQPKWij5Pw7TbjwqK2raomL5XHd5xWvJaHYt0mRauvw2wKBZbtmo4MFi0KxtIlLF001kl4HcOC"
 
 # Endpoints
 @app.route("/submit_refund", methods=['POST'])
