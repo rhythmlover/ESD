@@ -5,6 +5,7 @@
     Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <html lang="en">
+
 <head>
     <title>Add User Reviews</title>
     <meta charset="utf-8" />
@@ -58,40 +59,30 @@
                     <!-- Content -->
                     <article class="box post">
                         <header>
-                            <h2>Add Review:</h2>
+                            <h2>Add Comment:</h2>
                         </header>
                         <form id="reviewForm" onsubmit="submitReview(); return false;">
-                            <div class="form-group">
-                                <label for="user_id">User ID:</label>
-                                <input type="text" id="user_id" name="user_id" class="form-control" placeholder="Enter User ID" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="rating">Rating:</label>
-                                <div class="rating-input" style="display: inline-block;width: 500px;height: 50px;">
-                                    <input type="radio" id="rating1" name="rating" value="1" style="display: inline-block; transform: scale(2);">
-                                    <label for="rating1" style="display: inline-block; font-size: 20px; padding: 5px;">1</label>
-                                    <input type="radio" id="rating2" name="rating" value="2" style="display: inline-block; transform: scale(2);">
-                                    <label for="rating2" style="display: inline-block; font-size: 20px; padding: 5px;">2</label>
-                                    <input type="radio" id="rating3" name="rating" value="3" style="display: inline-block; transform: scale(2);">
-                                    <label for="rating3" style="display: inline-block; font-size: 20px; padding: 5px;">3</label>
-                                    <input type="radio" id="rating4" name="rating" value="4" style="display: inline-block; transform: scale(2);">
-                                    <label for="rating4" style="display: inline-block; font-size: 20px; padding: 5px;">4</label>
-                                    <input type="radio" id="rating5" name="rating" value="5" style="display: inline-block; transform: scale(2);">
-                                    <label for="rating5" style="display: inline-block; font-size: 20px; padding: 5px;">5</label>
+                            <div style="display: flex;">
+                                <div style="width: 33.3%; margin-right: 10px;">
+                                    <label for="user_id">Admin ID:</label>
+                                    <input type="text" id="user_id" name="user_id" class="form-control" placeholder="Enter Admin ID" required>
+                                </div>
+                                <div style="width: 33.3%; margin-right: 10px;">
+                                    <label for="event_id">Event ID:</label>
+                                    <input type="text" id="event_id" name="event_id" class="form-control" placeholder="Enter Event ID" required>
+                                </div>
+                                <div style="width: 33.3%;">
+                                    <label for="review_id">Review ID:</label>
+                                    <input type="text" id="review_id" name="review_id" class="form-control" placeholder="Enter Review ID - for reference, please refer to reviews" required>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="event_id">Event ID:</label>
-                                <input type="text" id="event_id" name="event_id" class="form-control" placeholder="Enter event ID" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="comment">Comment:</label>
-                                <textarea id="comment" name="comment" class="form-control" rows="4" placeholder="Enter your comment"></textarea>
+                                <label for="admin_comment">Admin Comment:</label>
+                                <textarea id="admin_comment" name="admin_comment" class="form-control" rows="4" placeholder="Enter your comment"></textarea>
                             </div>
                             <br>
                             <button type="submit" class="button">Submit</button>
-                        </form>
-                                                                                                                                                                  
+                        </form>                                                                                                                                                         
                     </article>
                 </div>
             </div>
@@ -158,46 +149,38 @@
     <script>
         function submitReview() {
             var user_id = document.getElementById("user_id").value;
-            var ratingInputs = document.getElementsByName('rating');
-            for (var i = 0; i < ratingInputs.length; i++) {
-                if (ratingInputs[i].checked) {
-                    rating = ratingInputs[i].value;
-                    break;
-                }
-            }
             var event_id = document.getElementById("event_id").value;
-            var comment = document.getElementById("comment").value;
-
-            fetch('http://localhost:5001/reviews/' + event_id, {
-                method: 'POST',
+            var review_id = document.getElementById("review_id").value;
+            var admin_comment = document.getElementById("admin_comment").value;
+    
+            fetch(`http://localhost:5001/reviews/${event_id}/${review_id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    user_id: user_id,
-                    rating: rating,
-                    comment: comment
+                    admin_comment: admin_comment
                 })
             })
             .then(response => {
                 if (response.ok) {
-                    alert("Review submitted successfully!");
+                    alert("Admin comment updated successfully!");
                     window.location.href = "event.html";
                 } else {
-                    throw new Error('Review submission failed!');
+                    throw new Error('Admin comment update failed!');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("Failed to submit review. Please try again later.");
+                alert("Failed to update admin comment. Please try again later.");
             });
         }
-
+    
         document.getElementById("reviewForm").addEventListener("submit", function(event) {
             event.preventDefault();
             submitReview();
-        });
+        })
     </script>
-
+    
 </body>
 </html>
