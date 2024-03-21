@@ -1,4 +1,5 @@
 # Singpass sandbox api microservice - to call dob from a set of dummy data. 
+# parameters to send: UEN/UNIFIN
 # Dummy datas
 # T15LP0010D/F1612345P
 # 53235113D/S6005052Z
