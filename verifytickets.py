@@ -14,6 +14,7 @@ app = Flask(__name__)
 
 # verification microservice url
 VERIFICATION_MICROSERVICE_URL = "http://127.0.0.1:5001/get-ticket-status"
+update_url = "http://127.0.0.1:5002/update-verified"
 
 @app.route('/verify-ticket', methods=['GET'])
 def verify_ticket():
@@ -31,6 +32,9 @@ def verify_ticket():
             # You might want to further process the data here before sending it back
             post_response = requests.post('http://127.0.0.1:5000/update-age-verified',json={'ticket_id':ticket_id})
             update_request = post_response.json()
+            if data.get('status') == 'pending_verification':
+                # Now, call the other microservice to update "age_verified"
+                post_response = requests.post(update_url, json={'ticket_id': ticket_id})
             return jsonify({
                 "code": 200,
                 "data": data.get('data'),  # This forwards the response from the simple service

@@ -1,4 +1,4 @@
-# Add tickets to users tickets page Simple Microservice
+# Add tickets to users>current_tickets and updates tickets>age_verified to true tickets Simple Microservice
 
 from flask import Flask, request, jsonify
 import firebase_admin
