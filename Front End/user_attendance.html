@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>View User Attendance</h1>
+        <form id="userForm">
+            <label for="userID">User ID:</label>
+            <input type="text" id="userID" name="userID" required>
+            <input type="submit" value="View Attendance">
+        </form>
+        <div id="attendanceTable"></div>
+    </div>
+
+    <script>
+
+        function fetchDataAndDisplay() {
+            const userID = document.getElementById('userID').value;
+        
+            fetch(`http://127.0.0.1:5000/attendance/users/${userID}`, {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        const eventIDs = data.data.events_attended;
+        
+                        const table = document.createElement('table');
+                        const headerRow = table.insertRow();
+                        const headerCell = headerRow.insertCell();
+                        headerCell.textContent = 'Event ID';
+        
+                        eventIDs.forEach(eventID => {
+                            const row = table.insertRow();
+                            const cell = row.insertCell();
+                            cell.textContent = eventID;
+                        });
+        
+                        document.getElementById('attendanceTable').innerHTML = '';
+                        document.getElementById('attendanceTable').appendChild(table);
+                    } else {
+                        alert('User ID not found');
+                    }
+                })
+                .catch(error => {
+                    alert('Error fetching data');
+                    console.error('Error:', error);
+                });
+        }
+        
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchDataAndDisplay();
+        });
+
+        // Fetch and display data on initial page load (optional)
+        // fetchDataAndDisplay();
+    </script>
+</body>
+
+</html>

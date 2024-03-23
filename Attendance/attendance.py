@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 from datetime import datetime
 import firebase_admin
 from firebase_admin import firestore, credentials
+from flask_cors import CORS 
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes in the app
 cred = credentials.Certificate(
     "esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json")
 firebase_admin.initialize_app(cred)

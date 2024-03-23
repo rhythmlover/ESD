@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>View Event Attendance</h1>
+        <form id="eventForm">
+            <label for="eventCode">Event Code:</label>
+            <input type="text" id="eventCode" name="eventCode" required>
+            <input type="submit" value="View Attendance">
+        </form>
+        <div id="attendanceTable"></div>
+        <button id="sortButton" onclick="toggleSort()">Toggle Sort</button>
+    </div>
+
+    <script>
+        let ascendingOrder = true;
+
+        function toggleSort() {
+            ascendingOrder = !ascendingOrder;
+            document.getElementById('sortButton').textContent = ascendingOrder ? 'Toggle Descending' : 'Toggle Ascending';
+            fetchDataAndDisplay();
+        }
+
+        function fetchDataAndDisplay() {
+            const eventCode = document.getElementById('eventCode').value;
+
+            fetch(`http://127.0.0.1:5000/attendance/events/${eventCode}`, {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const sortedData = data.data.slice().sort((a, b) => {
+                        const dateA = new Date(a.check_in_timing);
+                        const dateB = new Date(b.check_in_timing);
+                        return ascendingOrder ? dateA - dateB : dateB - dateA;
+                    });
+
+                    const table = document.createElement('table');
+                    const headerRow = table.insertRow();
+                    const headers = ['User ID', 'Check-in Time'];
+
+                    headers.forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.textContent = headerText;
+                        headerRow.appendChild(th);
+                    });
+
+                    sortedData.forEach(attendance => {
+                        const row = table.insertRow();
+                        const userIdCell = row.insertCell();
+                        userIdCell.textContent = attendance.user_id;
+
+                        const checkInTimeCell = row.insertCell();
+                        const checkInTime = new Date(attendance.check_in_timing);
+                        const formattedTime = new Intl.DateTimeFormat('en-US', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true
+                        }).format(checkInTime);
+                        checkInTimeCell.textContent = formattedTime;
+                    });
+
+                    document.getElementById('attendanceTable').innerHTML = '';
+                    document.getElementById('attendanceTable').appendChild(table);
+                })
+                .catch(error => {
+                    alert('Event code not found');
+                    console.error('Error:', error);
+                });
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchDataAndDisplay();
+        });
+
+        // Fetch and display data on initial page load
+        //fetchDataAndDisplay();
+    </script>
+</body>
+
+</html>
