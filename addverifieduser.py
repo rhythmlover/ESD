@@ -13,6 +13,7 @@ db = firestore.client()
 
 # Flask route to update verified status and append ticket ID to user's current_tickets
 @app.route('/update-verified', methods=['POST'])
+
 def update_verified():
     ticket_id = request.args.get('ticket_id')
     
@@ -26,7 +27,6 @@ def update_verified():
 
         if not ticket_doc.exists:
             return jsonify({"message": "Ticket not found"}), 404
-        
         # Update the ticket's age_verified field
         ticket_doc_ref.update({"age_verified": True})
 
