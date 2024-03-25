@@ -4,6 +4,8 @@ from flask import Flask, request, jsonify
 import firebase_admin
 import requests
 from firebase_admin import firestore, credentials
+import verifytickets
+
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
@@ -16,7 +18,7 @@ db = firestore.client()
 
 def update_verified():
     ticket_id = request.args.get('ticket_id')
-    
+    use_singpass = request.args.get('UEN')
     if not ticket_id:
         return jsonify({'error': 'Missing ticket_id'}), 400
 
@@ -27,8 +29,10 @@ def update_verified():
 
         if not ticket_doc.exists:
             return jsonify({"message": "Ticket not found"}), 404
+        
         # Update the ticket's age_verified field
-        ticket_doc_ref.update({"age_verified": True})
+        if use_singpass:
+            ticket_doc_ref.update({"age_verified": True})
 
         # Assuming ticket document contains a 'user_id'
         user_id = ticket_doc.to_dict().get('user_id')

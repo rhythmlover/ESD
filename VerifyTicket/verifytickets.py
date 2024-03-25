@@ -14,6 +14,7 @@ def orchestratewithsingpass():
     UEN_id = request.args.get('UEN')
     UNIFIN_id = request.args.get('UNIFIN')
 
+
     if not ticket_id or not UEN_id or not UNIFIN_id:
         return jsonify({'error': 'Missing required parameters'}), 400
 
@@ -28,17 +29,19 @@ def orchestratewithsingpass():
         return jsonify({'error': 'Age verification failed or user is underage'}), age_verification_response.status_code
 
     # Step 3: Update verified status in the database
-    update_response = requests.post(f"http://localhost:5002/update-verified?ticket_id={ticket_id}")
+    update_response = requests.post(f"http://localhost:5002/update-verified?ticket_id={ticket_id}&UEN={UEN_id}")
     if update_response.status_code == 200:
         return jsonify({'message': 'Ticket verification and update completed successfully'}), 200
     else:
         return jsonify({'error': 'Failed to update verified status'}), update_response.status_code
+
 
 @app.route('/orchestrate2', methods=['GET'])
 def orchestratewithoutsingpass():
     ticket_id = request.args.get('ticket_id')
     if not ticket_id:
         return jsonify({'error': 'Missing ticket_id'}), 400
+    
 
     # Step 1: Verify if the ticket has been redeemed by calling the first microservice
     verify_url = f"http://localhost:5001/get-ticket-status?ticket_id={ticket_id}"
@@ -52,6 +55,7 @@ def orchestratewithoutsingpass():
     elif not ticket_info.get('ticket_redeemed', False):
         # Ticket not redeemed, proceed to append to user's current tickets
         update_url = f"http://localhost:5002/update-verified?ticket_id={ticket_id}"
+
         update_response = requests.post(update_url)  # Adjust based on the actual endpoint and method
         if update_response.status_code == 200:
             return jsonify({'message': 'Ticket appended to user successfully.'}), 200
