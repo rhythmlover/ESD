@@ -14,6 +14,9 @@ db = firestore.client()
 #To call this function, the URL to use is for GET
 @app.route('/get-ticket-status', methods=['GET'])
 def get_ticket_status_route():
+    """
+    abc
+    """
     ticket_id = request.args.get('ticket_id')
 
     if not ticket_id:
