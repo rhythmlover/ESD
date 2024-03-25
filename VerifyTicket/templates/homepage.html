@@ -1,0 +1,59 @@
+<!-- Homepage -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+<body>
+    <h1>Welcome to TicketMaster</h1>
+    <button id="loginSingpass">Login with Singpass</button>
+    <button id="loginWithoutSingpass">Login without Singpass</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Assuming the URL of your complex microservice that starts the Singpass login flow
+        const singpassLoginUrl = '/start-singpass-login';
+
+        // Assuming the URL of your complex microservice that handles login without Singpass
+        const verifyTicketUrl = 'http://127.0.0.1:5000/get-ticket-status';
+
+        // Assuming the URL of your complex microservice that updates verified status
+        const updateVerifiedUrl = 'http://127.0.0.1:5000/update-verified';
+
+        // Replace with actual ticket_id as needed, could be dynamically set
+        const ticketId = 'some_ticket_id';
+
+        document.getElementById('loginSingpass').addEventListener('click', function() {
+            // Redirect to Singpass login page through your complex microservice
+            window.location.href = singpassLoginUrl;
+        });
+
+        document.getElementById('loginWithoutSingpass').addEventListener('click', function() {
+            // Make a GET request to your verifyTicket microservice
+            axios.get(`${verifyTicketUrl}?ticket_id=${ticketId}`)
+                .then(response => {
+                    const { data } = response;
+                    if (data.status) {
+                        // If status is true, proceed to call updateVerified
+                        updateVerified(ticketId);
+                    } else {
+                        alert('Ticket verification failed or ticket is not valid.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        function updateVerified(ticketId) {
+            // Make a POST request to your updateVerified microservice
+            axios.post(updateVerifiedUrl, { ticket_id: ticketId })
+                .then(response => {
+                    alert('Verified status updated successfully!');
+                    // Handle further actions upon successful update
+                })
+                .catch(error => console.error('Error updating verified status:', error));
+        }
+    </script>
+</body>
+</html>
