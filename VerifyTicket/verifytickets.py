@@ -34,10 +34,6 @@ def orchestratewithsingpass():
     else:
         return jsonify({'error': 'Failed to update verified status'}), update_response.status_code
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=5000, debug=True)
-
-app = Flask(__name__)
 @app.route('/orchestrate2', methods=['GET'])
 def orchestratewithoutsingpass():
     ticket_id = request.args.get('ticket_id')
@@ -63,7 +59,6 @@ def orchestratewithoutsingpass():
             return jsonify({'error': 'Error appending ticket to user'}), update_response.status_code
 
     return jsonify({'error': 'Unexpected error'}), 500
-
 
 
 if __name__ == '__main__':
