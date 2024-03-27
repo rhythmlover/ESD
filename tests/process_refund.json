@@ -1,0 +1,138 @@
+{
+    "info": {
+      "_postman_id": "",
+      "name": "Process Refund Composite Microservice",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "User - Get user information",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "http://localhost:5001/users/101",
+            "host": ["localhost"],
+            "port": "5001",
+            "path": ["users", "101"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Ticket - Create a ticket",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"101\", \"event_id\": \"201\", \"ticket_id\": \"301\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5002/tickets/create",
+            "host": ["localhost"],
+            "port": "5002",
+            "path": ["tickets", "create"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Refund Payment - Process Refund Payment",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"101\", \"ticket_id\": \"301\", \"amount\": \"10000\", \"currency\": \"sgd\", \"payment_method_id\": \"pm_1OweLXKfHG7YK88cDu9xlKSL\", \"customer_id\": \"cus_PmCkFZartm4jWy\", \"charge_id\": \"<get the charge_id from Nigel>\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5007/submit_refund",
+            "host": ["localhost"],
+            "port": "5007",
+            "path": ["submit_refund"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Email - Send confirmation email",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"to_email\": \"user@example.com\", \"html_content\": \"Congratulations! Your ticket purchase was successful.\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5008/send_email",
+            "host": ["localhost"],
+            "port": "5008",
+            "path": ["send_email"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Refund - Create Refund Request",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"101\", \"event_id\": \"201\", \"ticket_id\": \"301\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5006/refunds",
+            "host": ["localhost"],
+            "port": "5006",
+            "path": ["refunds"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Process Refund - Complete Process",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\"user_id\": \"101\", \"event_id\": \"201\", \"ticket_id\": \"301\", \"type\": \"create\", \"decision\": \"reject\"}"
+          },
+          "url": {
+            "raw": "http://localhost:5100/process_refund",
+            "host": ["localhost"],
+            "port": "5100",
+            "path": ["process_refund"]
+          }
+        },
+        "response": []
+      }
+    ]
+  }  
