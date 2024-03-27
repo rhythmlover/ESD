@@ -4,7 +4,7 @@ from os import environ
 
 hostname = "localhost" # default hostname
 port = 5672            # default port
-exchangename = "refund_topic" # exchange name
+exchangename = "ticket_topic" # exchange name
 exchangetype = "topic" # - use a 'topic' exchange to enable interaction
 
 # Instead of hardcoding the values, we can also get them from the environ as shown below

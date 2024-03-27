@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import firestore, credentials
 from datetime import datetime
+import pyqrcode
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
@@ -96,6 +97,9 @@ def create_ticket():
                         ticket_id:
                             type: string
                             description: ID of the ticket
+                        qr_code:
+                            type:string
+                            description: QR code of the ticket
     responses:
         201:
             description: Ticket created successfully
@@ -114,6 +118,11 @@ def create_ticket():
                 }
             ), 400
         
+        # Generate QR code string
+        qr_data = f"Ticket ID: {request.json['ticket_id']}, User ID: {request.json['user_id']}, Event ID: {request.json['event_id']}"
+        qr = pyqrcode.create(qr_data)
+        qr_code_base64 = qr.png_as_base64_str(scale=5)  # Adjust scale as needed
+        
         doc_ref = db.collection("tickets").document(request.json['ticket_id'])
         doc_ref.set({
             'user_id': request.json['user_id'],
@@ -123,7 +132,8 @@ def create_ticket():
             'age_verified': False,
             'ticket_redeemed': False,
             'payment_id': "",
-            "charge_id": ""
+            "charge_id": "",
+            "qr_code": qr_code_base64,
         })
 
         return jsonify(
@@ -281,6 +291,7 @@ def update_payment_id(ticket_id):
             "message": "Ticket ID: " + str(ticket_id) + "'s payment ID and charge ID updated successfully to " + str(request.json['payment_id']) + " and " + str(request.json['charge_id']) + " respectively."
         }
     ), 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)

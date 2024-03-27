@@ -5,6 +5,9 @@ from invokes import invoke_http
 import pika
 import json
 import amqp_connection
+import pyqrcode
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -189,6 +192,7 @@ def purchase_ticket():
 
             print('\n-----Invoking Email microservice-----')
             # Send Notification
+            qr_code_image_base64 = generate_qr_code_image(ticket_details_data['data']['qr_code'])
             html_content = f"""
             <html>
                 <body>
@@ -202,6 +206,7 @@ def purchase_ticket():
                         <li><strong>Transaction Date:</strong> {ticket_details_data["data"].get("created_at", "N/A")}</li>
                         <li><strong>Event ID:</strong> {ticket_details_data["data"].get("event_id", "N/A")}</li>
                         <li><strong>Ticket ID:</strong> {ticket_details_data["data"].get("ticket_id", "N/A")}</li>
+                        <li><strong>Ticket QR Code:</strong> <img src="data:image/png;base64,{qr_code_image_base64}" alt="QR Code"></li>
                         <li><strong>Ticket Redeemed:</strong> {ticket_details_data["data"].get("ticket_redeemed")}</li>
                     </ul>
                     <p>Best regards,<br>Ticketmaster</p>
@@ -275,6 +280,16 @@ def get_user_data(user_id):
         return user_response.get("data")
     else:
         return None
+    
+def generate_qr_code_image(qr_code_data):
+    """
+    Generate QR code image from the QR code data and return the base64 encoded image string.
+    """
+    qr = pyqrcode.create(qr_code_data)
+    buffer = BytesIO()
+    qr.png(buffer, scale=5)  # Adjust scale as needed
+    qr_code_image_base64 = base64.b64encode(buffer.getvalue()).decode()
+    return qr_code_image_base64
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5200, debug=True)
