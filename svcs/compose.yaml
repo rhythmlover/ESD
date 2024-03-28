@@ -1,0 +1,281 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  # Things to edit:
+  # RabbitMQ
+  #
+  # Activity_Log (depends on rabbitmq)
+  # Attendance (5004)
+  # Error (depends on rabbitmq)
+  # Event (5003)
+  # Invokes
+  # Payment (5007)
+  # Process_Refund (5100) (depends on refund, payment, send_email, user, ticket)
+  # Purchase_Ticket (5200) (depends on payment, send_email, user, ticket)
+  # Refund (5006)
+  # Reviews (5005)
+  # Send_Email (5008)
+  # SingPassAPI (5010)
+  # Ticket (5002)
+  # User (5001)
+  # Verification (5009)
+  # VerifyTickets (5300)
+
+  ####################################
+  # RabbitMQ: The messaging broker   
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: esd-rabbit
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes: 
+      - ./rabbitmq.config:/etc/rabbitmq/rabbitmq.config
+      - ./rabbitmq_definitions.json:/etc/rabbitmq/rabbitmq_definitions.json
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  #################################################
+  # Activity Log: The activity_log microservice
+  #################################################
+  activity_log:
+    build:
+      context: ./
+      dockerfile: activity_log.Dockerfile
+    image: keugene0/activity_log:ESD
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      a_queue_name: Activity_Log
+      PYTHONUNBUFFERED: 1
+
+  ###################################
+  # Attendance: The attendance microservice
+  ###################################
+  attendance:
+    build:
+      context: ./
+      dockerfile: attendance.Dockerfile
+    image: keugene0/attendance:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5004:5004"
+
+  ###################################
+  # Error: The error microservice
+  ###################################
+  error:
+    build:
+      context: ./
+      dockerfile: error.Dockerfile
+    image: keugene0/error:ESD
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      rabbit_host: rabbitmq
+      rabbit_port: 5672
+      e_queue_name: Error_Log
+      PYTHONUNBUFFERED: 1
+
+  ###################################
+  # Event: The event microservice
+  ###################################
+  event:
+    build:
+      context: ./
+      dockerfile: event.Dockerfile
+    image: keugene0/event:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5003:5003"
+
+  ###################################
+  # Invokes: The invokes microservice
+  ###################################
+  invokes:
+    build:
+      context: ./
+      dockerfile: invokes.Dockerfile
+    image: keugene0/invokes:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+  ###################################
+  # Payment: The payment microservice
+  ###################################
+  payment:
+    build:
+      context: ./
+      dockerfile: payment.Dockerfile
+    image: keugene0/payment:ESD
+    restart: always
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5007:5007"
+
+  ###################################
+  # Process Refund: The process_refund microservice
+  ###################################
+  process_refund:
+    build:
+      context: ./
+      dockerfile: process_refund.Dockerfile
+    image: keugene0/process_refund:ESD
+    restart: always
+    depends_on:
+      - refund
+      - payment
+      - send_email
+      - user
+      - ticket
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5100:5100"
+
+  ###################################
+  # Purchase_ticket: The purchase_ticket microservice
+  ###################################
+  purchase_ticket:
+    build:
+      context: ./
+      dockerfile: purchase_ticket.Dockerfile
+    image: keugene0/purchase_ticket:ESD
+    restart: always
+    depends_on:
+      - payment
+      - send_email
+      - user
+      - ticket
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5200:5200"
+
+  ###################################
+  # Refund: The refund microservice
+  ###################################
+  refund:
+    build:
+      context: ./
+      dockerfile: refund.Dockerfile
+    image: keugene0/refund:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5006:5006"
+
+  ###################################
+  # Reviews: The reviews microservice
+  ###################################
+  reviews:
+    build:
+      context: ./
+      dockerfile: reviews.Dockerfile
+    image: keugene0/reviews:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5005:5005"
+
+  ###################################
+  # Send Email: The send_email microservice
+  ###################################
+  send_email:
+    build:
+      context: ./
+      dockerfile: send_email.Dockerfile
+    image: keugene0/send_email:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5008:5008"
+
+  ###################################
+  # SingPass API: The singpassapi microservice
+  ###################################
+  singpassapi:
+    build:
+      context: ./
+      dockerfile: singpassapi.Dockerfile
+    image: keugene0/singpassapi:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5010:5010"
+
+  ###################################
+  # Ticket: The ticket microservice
+  ###################################
+  ticket:
+    build:
+      context: ./
+      dockerfile: ticket.Dockerfile
+    image: keugene0/ticket:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5002:5002"
+
+  ###################################
+  # User: The user microservice
+  ###################################
+  user:
+    build:
+      context: ./
+      dockerfile: user.Dockerfile
+    image: keugene0/user:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5001:5001"
+
+  ###################################
+  # Verification: The verification microservice
+  ###################################
+  verification:
+    build:
+      context: ./
+      dockerfile: verification.Dockerfile
+    image: keugene0/verification:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5009:5009"
+
+  ###################################
+  # Verify Tickets: The verifytickets microservice
+  ###################################
+  verifytickets:
+    build:
+      context: ./
+      dockerfile: verifytickets.Dockerfile
+    image: keugene0/verifytickets:ESD
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5300:5300"

@@ -17,7 +17,7 @@
 
 	<script>
         function fetchEvents(event_id) {
-            axios.get(`http://localhost:5000/events`)
+            axios.get(`http://localhost:5003/events`)
                 .then(response => {
                     console.log('Response:', response.data.data);
                     const events = response.data.data;
@@ -60,7 +60,7 @@
         }
 
         function viewReviews(event_id) {
-            axios.get(`http://localhost:5004/users/102`)
+            axios.get(`http://localhost:5005/users/101`)
                 .then(response => {
                     const account_type = response.data.data.account_type;
                     let reviewPage;

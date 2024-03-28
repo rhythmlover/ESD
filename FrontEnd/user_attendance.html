@@ -91,7 +91,7 @@
         function fetchDataAndDisplay() {
             const userID = document.getElementById('userID').value;
         
-            fetch(`http://127.0.0.1:5000/attendance/users/${userID}`, {
+            fetch(`http://127.0.0.1:5004/attendance/users/${userID}`, {
                 method: 'GET',
             })
                 .then(response => response.json())
