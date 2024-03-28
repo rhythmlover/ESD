@@ -60,14 +60,20 @@
                                 <input type="text" class="form-control" id="user_id" name="user_id" required>
                             </div>
                             <div class="form-group">
+                                <label for="ticket_id">Ticket ID:</label>
+                                <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
+                            </div>
+                            <div class="form-group">
                                 <label for="event_id">Event ID:</label>
                                 <input type="text" class="form-control" id="event_id" name="event_id" required>
                             </div>
                             <div class="form-group">
-                                <label for="ticket_id">Ticket ID:</label>
-                                <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
+                                <label for="type">Type:</label>
+                                <select id="type" name="type" class="form-control" required>
+                                    <option value="process">Process</option>
+                                    <option value="create">Create</option>
+                                </select>
                             </div>
-                            <br>
                             <button type="submit" class="button">Refund</button>
                         </form>
                     </div>
@@ -114,54 +120,37 @@
     <script>
         function refundTicket() {
             var user_id = document.getElementById("user_id").value;
-            var event_id = document.getElementById("event_id").value;
             var ticket_id = document.getElementById("ticket_id").value;
-        
-            fetch(`http://127.0.0.1:5003/events/${event_id}`, {
-                method: 'GET',
+            var event_id = document.getElementById("event_id").value;
+            var type = document.getElementById("type").value;
+
+            var data = {
+                user_id: user_id,
+                ticket_id: ticket_id,
+                event_id: event_id,
+                type: type
+            };
+
+            fetch("http://host.docker.internal:5100/process_refund", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
             })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Failed to fetch event price!');
-                }
-            })
+            .then(response => response.json())
             .then(data => {
-                const events = data.data;
-                const amount = events.event_price;
-        
-                return fetch('http://localhost:5100/process_refund', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: user_id,
-                        event_id: event_id,
-                        ticket_id: ticket_id,
-                        amount: amount
-                    })
-                });
-            })
-            .then(response => {
-                console.log('Purchase Ticket Response:', response);  // Log the response
-        
-                if (!response.ok) {
-                    // Throw an error if the response status is not in the range 200-299
-                    return response.json().then(error => { throw new Error(error.message || 'Ticket purchase failed!'); });
+                if (data.code === 201) {
+                    alert("Refund processed successfully!");
+                } else {
+                    alert("Failed to process refund. Error: " + data.message);
                 }
-        
-                alert("Ticket refunded successfully!");
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(error.message || "Failed to refund ticket. Please try again later.");
+                alert("Failed to process refund. Please try again later.");
             });
         }
-        </script>
-        
-        
+    </script>
 </body>
-
 </html>
