@@ -18,7 +18,7 @@ ticket_URL = "http://localhost:5002/tickets"
 payment_URL = "http://localhost:5007/process_payment"
 email_URL = "http://localhost:5008/send_email"
 
-exchangename = "ticketing_topic"
+exchangename = "ticket_topic"
 exchangetype = "topic"
 
 connection = amqp_connection.create_connection() 

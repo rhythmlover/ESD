@@ -63,10 +63,6 @@
                                 <label for="event_id">Event ID:</label>
                                 <input type="text" class="form-control" id="event_id" name="event_id" required>
                             </div>
-                            <div class="form-group">
-                                <label for="ticket_id">Ticket ID:</label>
-                                <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
-                            </div>
                             <br>
                             <button type="submit" class="button">Pay</button>
                         </form>
@@ -112,10 +108,11 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
+        
         function purchaseTicket() {
             var user_id = document.getElementById("user_id").value;
             var event_id = document.getElementById("event_id").value;
-            var ticket_id = document.getElementById("ticket_id").value;
+            var ticket_id = "3" + Math.floor(Math.random() * 90 + 10).toString();
         
             fetch(`http://127.0.0.1:5003/events/${event_id}`, {
                 method: 'GET',
