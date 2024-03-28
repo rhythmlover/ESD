@@ -74,40 +74,47 @@ def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id, qr_code):
         error_message = f"Failed to update verified status. Status code: {update_response.status_code}, Response: {update_response.json()}"
         return jsonify({'error': error_message}), update_response.status_code
 
-
-
-
-
 def orchestratewithoutsingpass(ticket_id, qr_code):
     if not ticket_id:
         return jsonify({'error': 'Missing ticket_id'}), 400
 
-    # Step 1: Verify if the ticket has been redeemed by calling the first microservice
-    verify_url = f"http://localhost:5009/get-ticket-status?ticket_id={ticket_id}"
-    verify_response = requests.get(verify_url)
-    if verify_response.status_code != 200:
-        return jsonify({'error': 'Error checking ticket status'}), verify_response.status_code
-
-    ticket_info = verify_response.json()
-    if 'ticket_redeemed' in ticket_info and ticket_info['ticket_redeemed']:
-        return jsonify({'message': 'Ticket already redeemed or not found.'}), 400
-    elif not ticket_info.get('ticket_redeemed', False):
-        # Ticket not redeemed, proceed to append to user's current tickets
-        update_url = f"http://localhost:5001/update-verified?ticket_id={ticket_id}"
-
-        # Adjust based on the actual endpoint and method
-        update_response = requests.post(update_url)
-        if update_response.status_code == 200:
-            return jsonify({'message': 'Ticket appended to user successfully.'}), 200
-        else:
-            return jsonify({'error': 'Error appending ticket to user'}), update_response.status_code
+    try:
+        # Step 1: Check ticket status and QR code match
+        verify_response = requests.get(
+            f"http://localhost:5009/get-ticket-status/{ticket_id}/{qr_code}")
         
-    # Step 2: Check QR code match
-    qr_code_response = requests.get(f"http://host.docker.internal:5002/update_ticket_redeem?ticket_id={ticket_id}?qr_code={qr_code}")
-    if qr_code_response.status_code != 200:
-        return jsonify({'error': 'QR code does not match'}), qr_code_response.status_code
+        print(f"Verify Response Status Code: {verify_response.status_code}")
+        print(f"Verify Response Text: {verify_response.text}")
+        
+        if verify_response.status_code != 200 or verify_response.json().get('ticket_redeemed') == True:
+            return jsonify({'error': 'Ticket already redeemed or could not check ticket status'}), verify_response.status_code
 
-    return jsonify({'error': 'Unexpected error'}), 500
+        ticket_info = verify_response.json()
+        if 'ticket_redeemed' in ticket_info and ticket_info['ticket_redeemed']:
+            return jsonify({'message': 'Ticket already redeemed or not found.'}), 400
+        elif not ticket_info.get('ticket_redeemed', False):
+            # Ticket not redeemed, proceed to append to user's current tickets
+            # Step 2: Update verified status in the database
+            update_data = {
+                'ticket_id': ticket_id,
+                'UEN_id': None  # We're not using UEN_id in this case
+            }
+            
+            update_response = requests.post("http://localhost:5001/update-verified", json=update_data)
+            
+            print(f"Update Response Status Code: {update_response.status_code}")
+            print(f"Update Response Text: {update_response.text}")
+            
+            if update_response.status_code == 200:
+                return jsonify({'message': 'Ticket appended to user successfully.'}), 200
+            else:
+                error_message = f"Failed to update verified status. Status code: {update_response.status_code}, Response: {update_response.json()}"
+                print(error_message)  # Print the error message for debugging
+                return jsonify({'error': error_message}), update_response.status_code
+    except Exception as e:
+        print(f"Error in orchestratewithoutsingpass: {str(e)}")  # Print the specific error message for debugging
+        return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == '__main__':

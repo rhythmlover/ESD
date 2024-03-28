@@ -54,17 +54,14 @@
             <div class="container">
                 <div class="row">
                     <div class="col-6 offset-3">
-                        <form action="login_process.php" method="post">
-                            <div class="form-group">
-                                <label for="username">Ticket ID:</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password">User ID:</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
+                        <form id="loginForm">
+                            <label for="ticket_id">Ticket ID:</label>
+                            <input type="text" id="ticket_id" name="ticket_id" required>
+                            
+                            <label for="qr_code">QR Code:</label>
+                            <input type="text" id="qr_code" name="qr_code" required>
                             <br>
-                            <button type="submit" class="btn btn-primary">Login</button>
+                            <button type="button" onclick="verifyTicket()">Verify Ticket</button>
                         </form>
                         <br>
                     </div>
@@ -103,6 +100,35 @@
         </section>
     </div>
 
-</body>
+    <script>
+    function verifyTicket() {
+        const ticketId = document.getElementById("ticket_id").value;
+        const qrCode = document.getElementById("qr_code").value;
 
+        fetch('http://localhost:5300/verify_ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                qr_code: qrCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                window.location.href = 'unsuccessfully_verified_page.html';
+                alert('Database update successful!');  // Alert for successful update
+            } else {
+                window.location.href = 'unsuccessfully_verified_page.html';
+                alert(`Database update failed: ${data.error}`);  // Alert for failed update
+            }
+        })
+        .catch(error => {
+            alert(`An error occurred: ${error}`);  // Alert for catch block
+        });
+    }
+    </script>
+</body>
 </html>
