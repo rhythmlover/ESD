@@ -158,9 +158,8 @@
         }
         
         function reviewButton(eventID) {
-            localStorage.setItem('userID', document.getElementById('userID').value);
-            localStorage.setItem('eventID', eventID);
-            
+            window.location.href = 'user_event_id_' + eventID + '_review.html'
+
             // Implement your logic to view event details
         }
 
