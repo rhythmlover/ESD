@@ -160,7 +160,7 @@
             var event_image = document.getElementById("event_name").value;
             var event_description = document.getElementById("event_description").value;
 
-            fetch('http://localhost:5000/events/' + event_id, {
+            fetch('http://localhost:5003/events/' + event_id, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -153,7 +153,7 @@
             var review_id = document.getElementById("review_id").value;
             var admin_comment = document.getElementById("admin_comment").value;
     
-            fetch(`http://localhost:5001/reviews/${event_id}/${review_id}`, {
+            fetch(`http://localhost:5005/reviews/${event_id}/${review_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

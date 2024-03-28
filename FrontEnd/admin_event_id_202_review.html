@@ -13,7 +13,7 @@
     <script>
 
 	function fetchReviews(eventId) {
-            axios.get(`http://localhost:5001/reviews/${eventId}`)
+            axios.get(`http://localhost:5005/reviews/${eventId}`)
                 .then(response => {
                     const reviews = response.data.data;
                     if (reviews.length === 0) {

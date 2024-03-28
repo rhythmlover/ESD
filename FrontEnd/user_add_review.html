@@ -168,7 +168,7 @@
             var event_id = document.getElementById("event_id").value;
             var comment = document.getElementById("comment").value;
 
-            fetch('http://localhost:5001/reviews/' + event_id, {
+            fetch('http://localhost:5005/reviews/' + event_id, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

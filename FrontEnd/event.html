@@ -42,7 +42,7 @@
                                         <p class="card-text">Event Price: ${event.event_price}</p>
                                         <p class="card-text">Event Description: ${event.event_description}</p>
                                         <ul class="actions">
-                                            <li><a href="localhost:5000/purchase_ticket/${event.event_id}" class="button alt">Purchase Ticket</a></li>
+                                            <li><a href="localhost:5200/purchase_ticket/${event.event_id}" class="button alt">Purchase Ticket</a></li>
 											<li<a href="#" class="button alt" onclick="viewReviews('${event.event_id}')">View Reviews</a></li>	
                                         </ul>
                                     </footer>
@@ -60,7 +60,7 @@
         }
 
         function viewReviews(event_id) {
-            axios.get(`http://localhost:5005/users/101`)
+            axios.get(`http://localhost:5001/users/101`)
                 .then(response => {
                     const account_type = response.data.data.account_type;
                     let reviewPage;

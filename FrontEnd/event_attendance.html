@@ -99,7 +99,7 @@
         function fetchDataAndDisplay() {
             const eventCode = document.getElementById('eventCode').value;
 
-            fetch(`http://127.0.0.1:5000/attendance/events/${eventCode}`, {
+            fetch(`http://127.0.0.1:5004/attendance/events/${eventCode}`, {
                 method: 'GET',
             })
                 .then(response => response.json())
