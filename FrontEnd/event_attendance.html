@@ -5,22 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Attendance</title>
+    <link rel="stylesheet" href="assets/css/main.css" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
 
         h1 {
             text-align: center;
@@ -75,17 +61,56 @@
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <h1>View Event Attendance</h1>
-        <form id="eventForm">
-            <label for="eventCode">Event Code:</label>
-            <input type="text" id="eventCode" name="eventCode" required>
-            <input type="submit" value="View Attendance">
-        </form>
-        <div id="attendanceTable"></div>
-        <button id="sortButton" onclick="toggleSort()">Toggle Sort</button>
+<body class="homepage is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <section id="header">
+
+            <!-- Logo -->
+            <h1><a href="event.html">TicketMaster</a></h1>
+
+            <!-- Nav -->
+            <nav id="nav">
+                <ul>
+                    <li class="current"><a href="event.html">Home</a></li>
+                </ul>
+            </nav>
+
+            </section>
+
+
+        <!-- Main -->
+        <section id="main">
+            <div class="container">
+                <h1>View Event Attendance</h1>
+                <button id="sortButton" onclick="toggleSort()">Toggle Sort</button>
+                <form id="eventForm">
+                    <label for="eventCode">Event Code:</label>
+                    <input type="text" id="eventCode" name="eventCode" required>
+                    <input type="submit" value="View Attendance">
+                </form>
+                <div id="attendanceTable"></div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <section id="footer">
+            <div class="container">
+                <div class="row">
+                    <!-- Footer content here -->
+                </div>
+            </div>
+        </section>
     </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
 
     <script>
         let ascendingOrder = true;
