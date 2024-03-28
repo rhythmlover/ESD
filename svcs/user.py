@@ -46,8 +46,9 @@ def get_user_details(user_id):
 
 @app.route('/update-verified', methods=['POST'])
 def update_verified():
-    ticket_id = request.args.get('ticket_id')
-    use_singpass = request.args.get('UEN')
+    data = request.json
+    ticket_id = data.get('ticket_id')
+    use_singpass = data.get('UEN_id')
     if not ticket_id:
         return jsonify({'error': 'Missing ticket_id'}), 400
 
@@ -82,17 +83,36 @@ def append_ticket_to_user(user_id, ticket_id):
 
     @firestore.transactional
     def update_in_transaction(transaction, user_ref, ticket_id):
-        user_snapshot = user_ref.get(transaction=transaction)
-        if user_snapshot.exists:
-            current_tickets = user_snapshot.get('current_tickets') or []
-            if ticket_id not in current_tickets:
-                current_tickets.append(ticket_id)
-                transaction.update(user_ref, {'current_tickets': current_tickets})
-                return True
-        return False
+        try:
+            user_snapshot = user_ref.get(transaction=transaction)
+            
+            if user_snapshot.exists:
+                current_tickets = user_snapshot.get('current_tickets') or []
+                
+                if ticket_id not in current_tickets:
+                    current_tickets.append(ticket_id)
+                    transaction.update(user_ref, {'current_tickets': current_tickets})
+                    return True
+                else:
+                    # Ticket already exists in current_tickets
+                    return True
+            else:
+                # User document does not exist
+                return False
+
+        except Exception as e:
+            # Log the error for debugging purposes
+            print(f"Error updating user's current_tickets: {e}")
+            return False
 
     transaction = db.transaction()
-    return update_in_transaction(transaction, user_ref, ticket_id)
+    result = update_in_transaction(transaction, user_ref, ticket_id)
+    
+    if result:
+        return jsonify({'message': 'Ticket appended to user successfully.'}), 200
+    else:
+        return jsonify({'error': 'Error updating user\'s current_tickets.'}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

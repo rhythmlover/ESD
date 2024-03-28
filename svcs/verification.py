@@ -34,12 +34,12 @@ def get_ticket_status_route(ticket_id, qr_code):
             }), 400
 
         # If the document exists, return the status field
-        status = doc.to_dict().get('age_verified', False)
+        status = doc.to_dict().get('ticket_redeemed', False)
         return jsonify({
             "code": 200,
             "data": {
                 "ticket_id": ticket_id,
-                "age_verified": status
+                "ticket_redeemed": status
             }
         })
     else:

@@ -2,12 +2,11 @@
 import requests
 from flask import Flask, request, jsonify
 import os, sys
-
-from flask import Flask, request, jsonify
-import requests
+import logging
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/verify_ticket', methods=['POST'])
 def verify_ticket():
     if not request.json:
@@ -16,20 +15,20 @@ def verify_ticket():
     try:
         body_request = request.json
         ticket_id = body_request.get('ticket_id')
-        UEN_id = body_request.get('UEN_id')
-        UNIFIN_id = body_request.get('UNIFIN_id')
+        UEN_id = body_request.get('UEN')
+        UNIFIN_id = body_request.get('UNIFIN')
         qr_code = body_request.get('qr_code')
 
         if UEN_id and UNIFIN_id:
             result = orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id, qr_code)
             print('\n------------------------')
             print('\nresult: ', result)
-            return jsonify(result), result["code"]
+            return result
         else:
             result = orchestratewithoutsingpass(ticket_id, qr_code)
             print('\n------------------------')
             print('\nresult: ', result)
-            return jsonify(result), result["code"]
+            return result
     except Exception as e:
         # Unexpected error in code
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -45,33 +44,38 @@ def verify_ticket():
 
 
 def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id, qr_code):
-    if not ticket_id or not UEN_id or not UNIFIN_id:
+    if not ticket_id or not UEN_id or not UNIFIN_id or not qr_code:
         return jsonify({'error': 'Missing required parameters'}), 400
 
-    # Step 1: Check ticket status
+    # Step 1: Check ticket status and QR code match
     ticket_status_response = requests.get(
-        f"http://host.docker.internal:5011/get-ticket-status?ticket_id={ticket_id}")
+        f"http://localhost:5009/get-ticket-status/{ticket_id}/{qr_code}")
+    
     if ticket_status_response.status_code != 200 or ticket_status_response.json().get('ticket_redeemed') == True:
         return jsonify({'error': 'Ticket already redeemed or could not check ticket status'}), ticket_status_response.status_code
-    
-    # Step 2: Check QR code match
-    qr_code_response = requests.get(f"http://host.docker.internal:5002/update_ticket_redeem?ticket_id={ticket_id}?qr_code={qr_code}")
-    if qr_code_response.status_code != 200:
-        return jsonify({'error': 'QR code does not match'}), qr_code_response.status_code
 
-    # Step 3: Verify user's age using SingPass API
+    # Step 2: Verify user's age using SingPass API
     age_verification_response = requests.get(
-        f"http://host.docker.internal:5010/verify-age?UEN={UEN_id}&UNIFIN={UNIFIN_id}")
+        f"http://localhost:5010/verify-age?UEN={UEN_id}&UNIFIN={UNIFIN_id}")
+    
     if age_verification_response.status_code != 200 or not age_verification_response.json().get('Person is above 21'):
         return jsonify({'error': 'Age verification failed or user is underage'}), age_verification_response.status_code
 
-    # Step 4: Update verified status in the database
-    update_response = requests.post(
-        f"http://host.docker.internal:5001/update-verified?ticket_id={ticket_id}&UEN={UEN_id}")
+    # Step 3: Update verified status in the database
+    update_data = {
+        'ticket_id': ticket_id,
+        'UEN_id' : UEN_id
+    }
+    update_response = requests.post("http://localhost:5001/update-verified", json=update_data)
+    
     if update_response.status_code == 200:
         return jsonify({'message': 'Ticket verification and update completed successfully'}), 200
     else:
-        return jsonify({'error': 'Failed to update verified status'}), update_response.status_code
+        error_message = f"Failed to update verified status. Status code: {update_response.status_code}, Response: {update_response.json()}"
+        return jsonify({'error': error_message}), update_response.status_code
+
+
+
 
 
 def orchestratewithoutsingpass(ticket_id, qr_code):
@@ -79,7 +83,7 @@ def orchestratewithoutsingpass(ticket_id, qr_code):
         return jsonify({'error': 'Missing ticket_id'}), 400
 
     # Step 1: Verify if the ticket has been redeemed by calling the first microservice
-    verify_url = f"http://host.docker.internal:5011/get-ticket-status?ticket_id={ticket_id}"
+    verify_url = f"http://localhost:5009/get-ticket-status?ticket_id={ticket_id}"
     verify_response = requests.get(verify_url)
     if verify_response.status_code != 200:
         return jsonify({'error': 'Error checking ticket status'}), verify_response.status_code
@@ -89,7 +93,7 @@ def orchestratewithoutsingpass(ticket_id, qr_code):
         return jsonify({'message': 'Ticket already redeemed or not found.'}), 400
     elif not ticket_info.get('ticket_redeemed', False):
         # Ticket not redeemed, proceed to append to user's current tickets
-        update_url = f"http://host.docker.internal:5001/update-verified?ticket_id={ticket_id}"
+        update_url = f"http://localhost:5001/update-verified?ticket_id={ticket_id}"
 
         # Adjust based on the actual endpoint and method
         update_response = requests.post(update_url)
