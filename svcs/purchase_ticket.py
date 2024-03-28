@@ -13,12 +13,13 @@ import base64
 app = Flask(__name__)
 CORS(app)
 
-user_URL = "http://localhost:5001/users"
-ticket_URL = "http://localhost:5002/tickets"
-payment_URL = "http://localhost:5007/process_payment"
-email_URL = "http://localhost:5008/send_email"
+# localhost is used for local testing
+user_URL = "http://host.docker.internal:5001/users"
+ticket_URL = "http://host.docker.internal:5002/tickets"
+payment_URL = "http://host.docker.internal:5007/process_payment"
+email_URL = "http://host.docker.internal:5008/send_email"
 
-exchangename = "ticket_topic"
+exchangename = "ticketing_topic"
 exchangetype = "topic"
 
 connection = amqp_connection.create_connection() 
