@@ -1,25 +1,17 @@
 <!DOCTYPE HTML>
-
 <html>
-
 <head>
-    <title>Payment - TicketMaster</title>
+    <title>Refund Admin - TicketMaster</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
-
 </head>
-
 <body class="homepage is-preload">
     <div id="page-wrapper">
-
         <!-- Header -->
         <section id="header">
-
             <!-- Logo -->
-            <h1><a href="event.html">TicketMaster Refund Request</a></h1>
-
-
+            <h1><a href="refund_admin.html">TicketMaster Refund Admin</a></h1>
         </section>
 
         <!-- Main -->
@@ -28,13 +20,19 @@
                 <div class="row">
                     <div class="col-6 offset-3">
                         <div class="form-group">
-                            <form id="refundRequest" onsubmit="refundRequest();return false;">
+                            <form id="updateRefundForm" onsubmit="updateRefund();return false;">
+                                <label for="event_id">Event ID:</label>
+                                <input type="text" class="form-control" id="event_id" name="event_id" required>
                                 <label for="ticket_id">Ticket ID:</label>
                                 <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
-                                <label for="event_id">Event ID:</label>
-                                <input type="text" id="event_id" name="event_id" readonly>
-                            <br>
-                            <button type="submit" class="button">Refund</button>
+                                <label for="refund_status">Refund Status:</label>
+                                <select id="refund_status" class="form-control" required>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <br>
+                                <button type="submit" class="button">Update Refund Status</button>
                             </form>
                         </div>
                     </div>
@@ -79,47 +77,37 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-        function refundRequest() {
-            const event_id = localStorage.getItem('eventID');
+        function updateRefund() {
+            const event_id = document.getElementById("event_id").value;
             const ticket_id = document.getElementById("ticket_id").value;
-    
-            const userData = {
+            const refund_status = document.getElementById("refund_status").value;
+
+            const refundData = {
                 event_id: event_id,
                 ticket_id: ticket_id,
-                refund_status: "pending"
+                refund_status: refund_status
             };
-    
+
             fetch('http://127.0.0.1:5006/refunds', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(userData)
+                body: JSON.stringify(refundData)
             })
             .then(response => response.json())
             .then(data => {
                 if (data.code === 200) {
-                    alert('Refund request updated successfully.');
-                    // Optionally, redirect to a confirmation page or perform other actions
+                    alert('Refund status updated successfully.');
                 } else {
-                    alert('Failed to update refund request: ' + data.message);
+                    alert('Failed to update refund status: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to update refund request. Please try again later.');
+                alert('Failed to update refund status. Please try again later.');
             });
-        };
-    
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const eventId = urlParams.get('event_id');
-            
-            if (eventId) {
-                document.getElementById('event_id').value = eventId;
-            }
-        });
-    </script> 
+        }
+    </script>
 </body>
-
 </html>
