@@ -16,7 +16,7 @@ email_URL = "http://localhost:5008/send_email"
 user_URL = "http://localhost:5001/users"
 ticket_URL = "http://localhost:5002/tickets"
 
-exchangename = "refund_topic" # exchange name
+exchangename = "ticketing_topic" # exchange name
 exchangetype = "topic" # use a 'topic' exchange to enable interaction
 
 #create a connection and a channel to the broker to publish messages to activity_log, error queues

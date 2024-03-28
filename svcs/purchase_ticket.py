@@ -18,7 +18,7 @@ ticket_URL = "http://localhost:5002/tickets"
 payment_URL = "http://localhost:5007/process_payment"
 email_URL = "http://localhost:5008/send_email"
 
-exchangename = "ticket_topic"
+exchangename = "ticketing_topic"
 exchangetype = "topic"
 
 connection = amqp_connection.create_connection() 
@@ -313,7 +313,7 @@ def generate_qr_code_image(qr_code_data):
 def convert_image_to_base64(image):
     try:
         buffered = io.BytesIO()
-        image.save(buffered, format="PNG")
+        image.save(buffered)
         base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
         return base64_image
     except Exception as e:

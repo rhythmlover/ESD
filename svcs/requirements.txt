@@ -41,6 +41,7 @@ PyQRCode==1.2.1
 qrcode==7.4.2
 requests==2.31.0
 rsa==4.9
+stripe==8.8.0
 typing_extensions==4.10.0
 uritemplate==4.1.1
 urllib3==2.2.1

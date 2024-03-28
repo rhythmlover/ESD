@@ -71,7 +71,7 @@ def send_email():
             message.attachment = attachment
 
         sg = SendGridAPIClient(
-            '')
+            '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')
         response = sg.send(message)
  
         # https://docs.sendgrid.com/api-reference/mail-send/mail-send#responses
