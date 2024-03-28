@@ -1,27 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE HTML>
+<!--
+	Dopetrope by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Attendance</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
         h1 {
             text-align: center;
         }
@@ -93,24 +87,99 @@
             color: white;
         }
     </style>
+
 </head>
 
-<body>
-    <div class="container">
-        <h1>View User Attendance</h1>
-        <form id="userForm">
-            <label for="userID">User ID:</label>
-            <input type="text" id="userID" name="userID" required>
-            <input type="submit" value="View Attendance">
-        </form>
-        <div id="attendanceTable"></div>
-    </div>
+<body class="homepage is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <section id="header">
+
+            <!-- Logo -->
+            <h1><a href="event.html">TicketMaster</a></h1>
+
+            <!-- Nav -->
+            <nav id="nav">
+                <ul>
+                    <li class="current"><a href="event.html">Home</a></li>
+                </ul>
+            </nav>
+
+        </section>
+
+        <!-- Main -->
+        <section id="main">
+            <div class="container">
+                <h1>View User Attendance</h1>
+                <form id="userForm">
+                    <label for="userID">User ID:</label>
+                    <input type="text" id="userID" name="userID" required>
+                    <input type="submit" value="View Attendance">
+                </form>
+                <div id="attendanceTable"></div>
+            </div>
+        </section>
+
+		<!-- Footer -->
+		<section id="footer">
+			<div class="container">
+				<div class="row">
+					<div class="col-4 col-12-medium">
+						<section>
+							<header>
+								<h2>TicketMaster</h2>
+							</header>
+							<ul class="social">
+								<li><a class="icon brands fa-facebook-f" href="#"><span class="label">Facebook</span></a></li>
+								<li><a class="icon brands fa-twitter" href="#"><span class="label">Twitter</span></a></li>
+								<li><a class="icon brands fa-dribbble" href="#"><span class="label">Dribbble</span></a></li>
+								<li><a class="icon brands fa-tumblr" href="#"><span class="label">Tumblr</span></a></li>
+								<li><a class="icon brands fa-linkedin-in" href="#"><span class="label">LinkedIn</span></a></li>
+							</ul>
+							</section>
+							</div>
+							<section>
+									<h3>Address</h3>
+									<p>
+										81 Victoria St<br />
+										Singapore 188065
+									</p>
+							</section>
+							<section>
+									<h3>Mail</h3>
+									<p><a href="#">ticketmaster.support@gmail.com</a></p>
+							</section>
+							<section>
+									<h3>Phone</h3>
+									<p>(+65) 9999 9999</p>
+						</section>
+					</div>
+					<div class="col-12">
+
+						<!-- Copyright -->
+							<div id="copyright">
+								<ul class="links">
+									<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+								</ul>
+							</div>
+					</div>
+			</div>
+		</section>
+	</div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/jquery.dropotron.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/main.js"></script>
 
     <script>
-
         function fetchDataAndDisplay() {
             const userID = document.getElementById('userID').value;
-        
+
             fetch(`http://127.0.0.1:5004/attendance/users/${userID}`, {
                 method: 'GET',
             })
@@ -118,12 +187,12 @@
                 .then(data => {
                     if (data.code === 200) {
                         const eventIDs = data.data.events_attended;
-        
+
                         const table = document.createElement('table');
                         const headerRow = table.insertRow();
                         const headerCell1 = headerRow.insertCell();
                         headerCell1.textContent = 'Event ID';
-        
+
                         eventIDs.forEach(eventID => {
                             const row = table.insertRow();
                             const cell1 = row.insertCell();
@@ -144,7 +213,7 @@
                             cell1.appendChild(btnDetails);
                             cell1.appendChild(btnCheckin);
                         });
-        
+
                         document.getElementById('attendanceTable').innerHTML = '';
                         document.getElementById('attendanceTable').appendChild(table);
                     } else {
@@ -156,7 +225,7 @@
                     console.error('Error:', error);
                 });
         }
-        
+
         function viewDetails(eventID) {
             alert(`View details for Event ID: ${eventID}`);
             // Implement your logic to view event details
@@ -167,7 +236,7 @@
             // Implement your logic to check-in to the event
         }
 
-        document.getElementById('userForm').addEventListener('submit', function(event) {
+        document.getElementById('userForm').addEventListener('submit', function (event) {
             event.preventDefault();
             fetchDataAndDisplay();
         });
@@ -175,6 +244,7 @@
         // Fetch and display data on initial page load (optional)
         // fetchDataAndDisplay();
     </script>
+
 </body>
 
 </html>
