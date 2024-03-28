@@ -203,12 +203,12 @@
                             const btnDetails = document.createElement('button');
                             btnDetails.textContent = 'Review';
                             btnDetails.className = 'btn btn-review';
-                            btnDetails.addEventListener('click', () => viewDetails(eventID));
+                            btnDetails.addEventListener('click', () => reviewButton(eventID));
 
                             const btnCheckin = document.createElement('button');
                             btnCheckin.textContent = 'Refund';
                             btnCheckin.className = 'btn btn-refund';
-                            btnCheckin.addEventListener('click', () => checkIn(eventID));
+                            btnCheckin.addEventListener('click', () => refundButton(eventID));
 
                             cell1.appendChild(btnDetails);
                             cell1.appendChild(btnCheckin);
@@ -225,15 +225,19 @@
                     console.error('Error:', error);
                 });
         }
+        
+        function reviewButton(eventID) {
+            window.location.href = 'user_event_id_' + eventID + '_review.html'
 
-        function viewDetails(eventID) {
-            alert(`View details for Event ID: ${eventID}`);
             // Implement your logic to view event details
         }
 
-        function checkIn(eventID) {
-            alert(`Checking in to Event ID: ${eventID}`);
-            // Implement your logic to check-in to the event
+        function refundButton(eventID) {
+            // Store user ID and event ID in localStorage
+            localStorage.setItem('userID', document.getElementById('userID').value);
+            localStorage.setItem('eventID', eventID);
+            // Navigate to refund_request.html
+            window.location.href = 'refund_request.html';
         }
 
         document.getElementById('userForm').addEventListener('submit', function (event) {

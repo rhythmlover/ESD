@@ -2,8 +2,11 @@ from flask import Flask, request, jsonify
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 import base64
+from os import environ
 
 app = Flask(__name__)
+
+send_grid_api_key = environ.get('SENDGRID_API_KEY') or ''
 
 # Endpoints
 @app.route('/send_email', methods=['POST'])
@@ -70,8 +73,7 @@ def send_email():
             )
             message.attachment = attachment
 
-        sg = SendGridAPIClient(
-            '')
+        sg = SendGridAPIClient(send_grid_api_key)
         response = sg.send(message)
  
         # https://docs.sendgrid.com/api-reference/mail-send/mail-send#responses

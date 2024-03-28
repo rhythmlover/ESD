@@ -74,7 +74,7 @@ def process_payment():
             payment_data = request.get_json()
 
             payment_intent = stripe.PaymentIntent.create(
-                amount=int(payment_data.get('amount')*100),
+                amount=int(float(payment_data.get('amount')) * 100),
                 currency=payment_data.get('currency'),
                 payment_method=payment_data.get('payment_method_id'),
                 customer=payment_data.get('customer_id'),

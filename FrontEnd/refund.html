@@ -54,7 +54,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-6 offset-3">
-                        <form id="purchaseTicket" onsubmit="purchaseTicket();return false;">
+                        <form id="refundTicket" onsubmit="refundTicket();return false;">
                             <div class="form-group">
                                 <label for="user_id">User ID:</label>
                                 <input type="text" class="form-control" id="user_id" name="user_id" required>
@@ -68,7 +68,7 @@
                                 <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
                             </div>
                             <br>
-                            <button type="submit" class="button">Pay</button>
+                            <button type="submit" class="button">Refund</button>
                         </form>
                     </div>
                 </div>
@@ -112,7 +112,7 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-        function purchaseTicket() {
+        function refundTicket() {
             var user_id = document.getElementById("user_id").value;
             var event_id = document.getElementById("event_id").value;
             var ticket_id = document.getElementById("ticket_id").value;
@@ -131,7 +131,7 @@
                 const events = data.data;
                 const amount = events.event_price;
         
-                return fetch('http://localhost:5200/purchase_ticket', {
+                return fetch('http://localhost:5100/process_refund', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -152,11 +152,11 @@
                     return response.json().then(error => { throw new Error(error.message || 'Ticket purchase failed!'); });
                 }
         
-                alert("Ticket purchased successfully!");
+                alert("Ticket refunded successfully!");
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(error.message || "Failed to purchase ticket. Please try again later.");
+                alert(error.message || "Failed to refund ticket. Please try again later.");
             });
         }
         </script>

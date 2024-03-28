@@ -10,11 +10,12 @@ import amqp_connection
 app = Flask(__name__)
 CORS(app)
 
-refund_URL = "http://localhost:5006/refunds"
-payment_URL = "http://localhost:5007/submit_refund"
-email_URL = "http://localhost:5008/send_email"
-user_URL = "http://localhost:5001/users"
-ticket_URL = "http://localhost:5002/tickets"
+# localhost is used when running locally
+refund_URL = "http://host.docker.internal:5006/refunds"
+payment_URL = "http://host.docker.internal:5007/submit_refund"
+email_URL = "http://host.docker.internal:5008/send_email"
+user_URL = "http://host.docker.internal:5001/users"
+ticket_URL = "http://host.docker.internal:5002/tickets"
 
 exchangename = "ticketing_topic" # exchange name
 exchangetype = "topic" # use a 'topic' exchange to enable interaction

@@ -74,8 +74,10 @@
 		}
 
         function viewReviews(event_id) {
-            fetchUserType()
-                .then(account_type => {
+            axios.get(`http://localhost:5001/users/102`)
+                .then(response => {
+                    const account_type = response.data.data.account_type;
+                    let reviewPage;
                     if (account_type === 'admin') {
                         window.location.href = `admin_event_id_${event_id}_review.html`;
                     } else if (account_type === 'user') {
