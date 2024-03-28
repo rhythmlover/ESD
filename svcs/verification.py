@@ -12,21 +12,27 @@ db = firestore.client()
 
 #Use Flask's app.route decorator to map the URL route /event to the function get_all
 #To call this function, the URL to use is for GET
-@app.route('/get-ticket-status', methods=['GET'])
-def get_ticket_status_route():
+@app.route('/get-ticket-status/<string:ticket_id>/<string:qr_code>', methods=['GET'])
+def get_ticket_status_route(ticket_id, qr_code):
     """
     abc
     """
-    ticket_id = request.args.get('ticket_id')
 
-    if not ticket_id:
-        return jsonify({'error': 'Missing ticket_id'}), 400
+    if not ticket_id or not qr_code:
+        return jsonify({'error': 'Missing ticket_id/QR code'}), 400
 
     # Attempt to get the document from the collection "tickets" by ticket_id
     doc_ref = db.collection('tickets').document(ticket_id)
     doc = doc_ref.get()
 
     if doc.exists:
+        if doc.to_dict().get("qr_code") != qr_code:
+            return jsonify(
+            {
+                "code": 400,
+                "message": "QR Code does not match."
+            }), 400
+
         # If the document exists, return the status field
         status = doc.to_dict().get('status', False)
         return jsonify({

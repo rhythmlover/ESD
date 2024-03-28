@@ -5,8 +5,9 @@ from invokes import invoke_http
 import pika
 import json
 import amqp_connection
-import pyqrcode
-from io import BytesIO
+import qrcode
+import io
+import os
 import base64
 
 app = Flask(__name__)
@@ -192,12 +193,24 @@ def purchase_ticket():
 
             print('\n-----Invoking Email microservice-----')
             # Send Notification
-            qr_code_image_base64 = generate_qr_code_image(ticket_details_data['data']['qr_code'])
+            qr_code_data = ticket_details_data['data']['qr_code']
+            qr_code_image = generate_qr_code_image(qr_code_data)
+
+            if qr_code_image:
+                image_base64 = convert_image_to_base64(qr_code_image)
+
+                # Attach the base64-encoded image as a file to the email
+                attachment_data = {
+                    "filename": "qr_code.png",
+                    "data": image_base64
+                }
+
             html_content = f"""
             <html>
                 <body>
                     <h1>Purchase Confirmation</h1>
                     <p>Thank you for your purchase. Here are the details of your transaction:</p>
+                    <p>Attached is the QR code for your ticket</p>
                     <ul>
                         <li><strong>User ID:</strong> {user_id}</li>
                         <li><strong>Payment ID:</strong> {payment_id}</li>
@@ -206,7 +219,6 @@ def purchase_ticket():
                         <li><strong>Transaction Date:</strong> {ticket_details_data["data"].get("created_at", "N/A")}</li>
                         <li><strong>Event ID:</strong> {ticket_details_data["data"].get("event_id", "N/A")}</li>
                         <li><strong>Ticket ID:</strong> {ticket_details_data["data"].get("ticket_id", "N/A")}</li>
-                        <li><strong>Ticket QR Code:</strong> <img src="data:image/png;base64,{qr_code_image_base64}" alt="QR Code"></li>
                         <li><strong>Ticket Redeemed:</strong> {ticket_details_data["data"].get("ticket_redeemed")}</li>
                     </ul>
                     <p>Best regards,<br>Ticketmaster</p>
@@ -215,7 +227,8 @@ def purchase_ticket():
             """
             email_response = invoke_http(email_URL, method='POST', json={
                 "to_email": user_response["email"],
-                "html_content": html_content
+                "html_content": html_content,
+                "attachment_data": attachment_data
             })
             print('email_response:', email_response)
             email_message = json.dumps(email_response)
@@ -282,14 +295,30 @@ def get_user_data(user_id):
         return None
     
 def generate_qr_code_image(qr_code_data):
-    """
-    Generate QR code image from the QR code data and return the base64 encoded image string.
-    """
-    qr = pyqrcode.create(qr_code_data)
-    buffer = BytesIO()
-    qr.png(buffer, scale=5)  # Adjust scale as needed
-    qr_code_image_base64 = base64.b64encode(buffer.getvalue()).decode()
-    return qr_code_image_base64
+    try:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_code_data)
+        qr.make(fit=True)
+        qr_image = qr.make_image(fill_color="black", back_color="white")
+        return qr_image
+    except Exception as e:
+        print(f"Error generating QR code: {e}")
+        return None
+
+def convert_image_to_base64(image):
+    try:
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+        base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        return base64_image
+    except Exception as e:
+        print(f"Error converting image to base64: {e}")
+        return None
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5200, debug=True)

@@ -3,6 +3,8 @@ import firebase_admin
 from firebase_admin import firestore, credentials
 from datetime import datetime
 import pyqrcode
+import uuid
+import os
 
 # Intialization of Flask app and Firebase Firestore
 app = Flask(__name__)
@@ -119,9 +121,7 @@ def create_ticket():
             ), 400
         
         # Generate QR code string
-        qr_data = f"Ticket ID: {request.json['ticket_id']}, User ID: {request.json['user_id']}, Event ID: {request.json['event_id']}"
-        qr = pyqrcode.create(qr_data)
-        qr_code_base64 = qr.png_as_base64_str(scale=5)  # Adjust scale as needed
+        qr_code_base64 = generate_qr_code(request.json)
         
         doc_ref = db.collection("tickets").document(request.json['ticket_id'])
         doc_ref.set({
@@ -196,7 +196,7 @@ def update_age_verification(ticket_id):
         }
     ), 200
 
-@app.route("/tickets/<string:ticket_id>/redeem", methods=["PUT"])
+@app.route("/tickets/<string:ticket_id>/redeem", methods=["POST"])
 def update_ticket_redeem(ticket_id):
     """
     Update the redemption status of a ticket.
@@ -292,6 +292,16 @@ def update_payment_id(ticket_id):
         }
     ), 200
 
+def generate_qr_code(ticket_data):
+    try:
+        # Generate unique QR code based on user id, event id and ticket id
+        qr_data = f"{ticket_data['user_id']}|{ticket_data['event_id']}|{ticket_data['ticket_id']}"
+        qr = pyqrcode.create(qr_data)
+        qr_code_base64 = qr.png_as_base64_str(scale=8)
+        return qr_code_base64
+    except Exception as e:
+        print("Error generating QR code:", str(e))
+        return None
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)

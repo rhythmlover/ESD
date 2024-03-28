@@ -18,14 +18,15 @@ def verify_ticket():
         ticket_id = body_request.get('ticket_id')
         UEN_id = body_request.get('UEN_id')
         UNIFIN_id = body_request.get('UNIFIN_id')
+        qr_code = body_request.get('qr_code')
 
         if UEN_id and UNIFIN_id:
-            result = orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id)
+            result = orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id, qr_code)
             print('\n------------------------')
             print('\nresult: ', result)
             return jsonify(result), result["code"]
         else:
-            result = orchestratewithoutsingpass(ticket_id)
+            result = orchestratewithoutsingpass(ticket_id, qr_code)
             print('\n------------------------')
             print('\nresult: ', result)
             return jsonify(result), result["code"]
@@ -43,7 +44,7 @@ def verify_ticket():
         }), 500
 
 
-def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id):
+def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id, qr_code):
     if not ticket_id or not UEN_id or not UNIFIN_id:
         return jsonify({'error': 'Missing required parameters'}), 400
 
@@ -52,14 +53,19 @@ def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id):
         f"http://localhost:5011/get-ticket-status?ticket_id={ticket_id}")
     if ticket_status_response.status_code != 200 or ticket_status_response.json().get('ticket_redeemed') == True:
         return jsonify({'error': 'Ticket already redeemed or could not check ticket status'}), ticket_status_response.status_code
+    
+    # Step 2: Check QR code match
+    qr_code_response = requests.get(f"http://localhost:5002/update_ticket_redeem?ticket_id={ticket_id}?qr_code={qr_code}")
+    if qr_code_response.status_code != 200:
+        return jsonify({'error': 'QR code does not match'}), qr_code_response.status_code
 
-    # Step 2: Verify user's age using SingPass API
+    # Step 3: Verify user's age using SingPass API
     age_verification_response = requests.get(
         f"http://localhost:5010/verify-age?UEN={UEN_id}&UNIFIN={UNIFIN_id}")
     if age_verification_response.status_code != 200 or not age_verification_response.json().get('Person is above 21'):
         return jsonify({'error': 'Age verification failed or user is underage'}), age_verification_response.status_code
 
-    # Step 3: Update verified status in the database
+    # Step 4: Update verified status in the database
     update_response = requests.post(
         f"http://localhost:5001/update-verified?ticket_id={ticket_id}&UEN={UEN_id}")
     if update_response.status_code == 200:
@@ -68,7 +74,7 @@ def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id):
         return jsonify({'error': 'Failed to update verified status'}), update_response.status_code
 
 
-def orchestratewithoutsingpass(ticket_id):
+def orchestratewithoutsingpass(ticket_id, qr_code):
     if not ticket_id:
         return jsonify({'error': 'Missing ticket_id'}), 400
 
@@ -91,6 +97,11 @@ def orchestratewithoutsingpass(ticket_id):
             return jsonify({'message': 'Ticket appended to user successfully.'}), 200
         else:
             return jsonify({'error': 'Error appending ticket to user'}), update_response.status_code
+        
+    # Step 2: Check QR code match
+    qr_code_response = requests.get(f"http://localhost:5002/update_ticket_redeem?ticket_id={ticket_id}?qr_code={qr_code}")
+    if qr_code_response.status_code != 200:
+        return jsonify({'error': 'QR code does not match'}), qr_code_response.status_code
 
     return jsonify({'error': 'Unexpected error'}), 500
 
