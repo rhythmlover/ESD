@@ -72,6 +72,26 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        /* Add new styles for buttons */
+        .btn {
+            padding: 8px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right; /* Align buttons to the right */
+        }
+
+        .btn-refund {
+            background-color: orangered;
+            color: white;
+        }
+
+        .btn-review {
+            background-color: #007bff;
+            color: white;
+        }
     </style>
 </head>
 
@@ -101,13 +121,28 @@
         
                         const table = document.createElement('table');
                         const headerRow = table.insertRow();
-                        const headerCell = headerRow.insertCell();
-                        headerCell.textContent = 'Event ID';
+                        const headerCell1 = headerRow.insertCell();
+                        headerCell1.textContent = 'Event ID';
         
                         eventIDs.forEach(eventID => {
                             const row = table.insertRow();
-                            const cell = row.insertCell();
-                            cell.textContent = eventID;
+                            const cell1 = row.insertCell();
+
+                            cell1.textContent = eventID;
+
+                            // Add buttons to the cell
+                            const btnDetails = document.createElement('button');
+                            btnDetails.textContent = 'Review';
+                            btnDetails.className = 'btn btn-review';
+                            btnDetails.addEventListener('click', () => viewDetails(eventID));
+
+                            const btnCheckin = document.createElement('button');
+                            btnCheckin.textContent = 'Refund';
+                            btnCheckin.className = 'btn btn-refund';
+                            btnCheckin.addEventListener('click', () => checkIn(eventID));
+
+                            cell1.appendChild(btnDetails);
+                            cell1.appendChild(btnCheckin);
                         });
         
                         document.getElementById('attendanceTable').innerHTML = '';
@@ -122,6 +157,16 @@
                 });
         }
         
+        function viewDetails(eventID) {
+            alert(`View details for Event ID: ${eventID}`);
+            // Implement your logic to view event details
+        }
+
+        function checkIn(eventID) {
+            alert(`Checking in to Event ID: ${eventID}`);
+            // Implement your logic to check-in to the event
+        }
+
         document.getElementById('userForm').addEventListener('submit', function(event) {
             event.preventDefault();
             fetchDataAndDisplay();
