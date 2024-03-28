@@ -61,7 +61,7 @@ def orchestratewithsingpass(ticket_id, UEN_id, UNIFIN_id):
 
     # Step 3: Update verified status in the database
     update_response = requests.post(
-        f"http://localhost:5009/update-verified?ticket_id={ticket_id}&UEN={UEN_id}")
+        f"http://localhost:5001/update-verified?ticket_id={ticket_id}&UEN={UEN_id}")
     if update_response.status_code == 200:
         return jsonify({'message': 'Ticket verification and update completed successfully'}), 200
     else:
@@ -83,7 +83,7 @@ def orchestratewithoutsingpass(ticket_id):
         return jsonify({'message': 'Ticket already redeemed or not found.'}), 400
     elif not ticket_info.get('ticket_redeemed', False):
         # Ticket not redeemed, proceed to append to user's current tickets
-        update_url = f"http://localhost:5009/update-verified?ticket_id={ticket_id}"
+        update_url = f"http://localhost:5001/update-verified?ticket_id={ticket_id}"
 
         # Adjust based on the actual endpoint and method
         update_response = requests.post(update_url)

@@ -49,4 +49,4 @@ def get_ticket_status_route():
         ), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5011, debug=True)
+    app.run(host='0.0.0.0', port=5009, debug=True)
