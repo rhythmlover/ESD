@@ -5,4 +5,4 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 COPY ./amqp_connection.py .
 COPY ./error.py .
 COPY ./esd-ticketing-firebase-adminsdk-dxgtc-363d36e381.json .
-CMD [ "python", "amqp_connection.py", "./error.py" ]
+CMD [ "python", "./amqp_connection.py", "./error.py" ]
