@@ -237,7 +237,7 @@
             localStorage.setItem('userID', document.getElementById('userID').value);
             localStorage.setItem('eventID', eventID);
             // Navigate to refund_request.html
-            window.location.href = 'refund_request.html';
+            window.location.href = `refund_request.html?event_id=${eventID}`;
         }
 
         document.getElementById('userForm').addEventListener('submit', function (event) {

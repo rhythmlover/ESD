@@ -31,6 +31,8 @@
                             <form id="refundRequest" onsubmit="refundRequest();return false;">
                                 <label for="ticket_id">Ticket ID:</label>
                                 <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
+                                <label for="event_id">Event ID:</label>
+                                <input type="text" id="event_id" name="event_id" readonly>
                             <br>
                             <button type="submit" class="button">Refund</button>
                             </form>
@@ -78,18 +80,17 @@
     <script src="assets/js/main.js"></script>
     <script>
         function refundRequest() {
-        const user_id = localStorage.getItem('userID');
-        const event_id = localStorage.getItem('eventID');
-        const ticket_id = document.getElementById("ticket_id").value;
-
+            const event_id = localStorage.getItem('eventID');
+            const ticket_id = document.getElementById("ticket_id").value;
+    
             const userData = {
-                user_id: user_id,
                 event_id: event_id,
-                ticket_id: ticket_id
+                ticket_id: ticket_id,
+                refund_status: "pending"
             };
-
+    
             fetch('http://127.0.0.1:5006/refunds', {
-                method: 'POST',
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -97,21 +98,28 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.code === 201) {
-                    alert('Refund request created successfully.');
+                if (data.code === 200) {
+                    alert('Refund request updated successfully.');
                     // Optionally, redirect to a confirmation page or perform other actions
                 } else {
-                    alert('Failed to create refund request: ' + data.message);
+                    alert('Failed to update refund request: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to create refund request. Please try again later.');
+                alert('Failed to update refund request. Please try again later.');
             });
         };
-    </script>
-        
-        
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('event_id');
+            
+            if (eventId) {
+                document.getElementById('event_id').value = eventId;
+            }
+        });
+    </script> 
 </body>
 
 </html>
