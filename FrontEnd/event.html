@@ -29,22 +29,35 @@
                     let eventsHtml = '';
                     for (let i = 0; i < events.length; i++) {
                         const event = events[i];
+						const eventDateTime = new Date(event.event_datetime);
+						console.log(eventDateTime)
+
+						const currentDate = new Date();
+						const isEventPast = eventDateTime < currentDate;
+
+						let buttonHtml = '';
+						if (isEventPast) {
+							// Event has passed, show "View Reviews" button
+							buttonHtml = `<li><a href="#" class="button alt" onclick="viewReviews('${event.event_id}')">View Reviews</a></li>`;
+						} else {
+							// Event is in the future, show "Purchase Ticket" button
+							buttonHtml = `<li><a href="payment.html" class="button alt">Purchase Ticket</a></li>`;
+						}
 
                         eventsHtml += `
                             <div class="col-4 col-6-medium col-12-small">
                                 <section class="box">
-                                    <a href="${event.event_image}" class="image featured"><img src="${event.event_image}" width="200" height="200"></a>
+                                    <a href="${event.event_image}" class="image featured"><img src="${event.event_image}" width="200" height="300"></a>
                                     <header>
                                         <h3>${event.event_name}</h3>
                                         <h5 class="card-title">Event ID: ${event.event_id}</h5>
                                     </header>
                                     <footer>
                                         <p class="card-text">Event Date & Time: ${event.event_datetime}</p>
-                                        <p class="card-text">Event Price: ${event.event_price}</p>
+                                        <p class="card-text">Event Price: $${event.event_price}</p>
                                         <p class="card-text">Event Description: ${event.event_description}</p>
                                         <ul class="actions">
-                                            <li><a href="localhost:5200/purchase_ticket/${event.event_id}" class="button alt">Purchase Ticket</a></li>
-                                            <li><a href="#" class="button alt" onclick="viewReviews('${event.event_id}')">View Reviews</a></li>
+											${buttonHtml}
                                         </ul>
                                     </footer>
                                 </section>
@@ -74,21 +87,13 @@
 		}
 
         function viewReviews(event_id) {
-            axios.get(`http://localhost:5001/users/102`)
-                .then(response => {
-                    const account_type = response.data.data.account_type;
                     let reviewPage;
                     if (account_type === 'admin') {
                         window.location.href = `admin_event_id_${event_id}_review.html`;
                     } else if (account_type === 'user') {
                         window.location.href = `user_event_id_${event_id}_review.html`;
                     }
-                })
-                .catch(error => {
-                    alert(error.message);
-                });
-        }
-
+                }
         // Fetch events when the page loads
 		fetchUserType().then(() => fetchEvents());
     </script>
