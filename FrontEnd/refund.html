@@ -23,6 +23,7 @@
             <nav id="nav">
                 <ul>
                     <li class="current"><a href="event.html">Home</a></li>
+                </ul>
             </nav>
         </section>
 
@@ -31,7 +32,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-6 offset-3">
-                        <form id="refundTicket" onsubmit="refundTicket();return false;">
+                        <form id="refundTicket" method="POST" onsubmit="refundTicket(); return false;">
                             <div class="form-group">
                                 <label for="user_id">User ID:</label>
                                 <input type="text" class="form-control" id="user_id" name="user_id" required>
@@ -45,12 +46,13 @@
                                 <input type="text" class="form-control" id="event_id" name="event_id" required>
                             </div>
                             <div class="form-group">
-                                <label for="type">Type:</label>
-                                <select id="type" name="type" class="form-control" required>
-                                    <option value="process">Process</option>
-                                    <option value="create">Create</option>
+                                <label for="decision">Decision:</label>
+                                <select id="decision" name="decision" required>
+                                    <option value="approve">approve</option>
+                                    <option value="rejecte">rejecte</option>
                                 </select>
                             </div>
+                            <input type="hidden" id="type" name="type" value="process"> <!-- Hidden field for type -->
                             <button type="submit" class="button">Refund</button>
                         </form>
                     </div>
@@ -101,7 +103,10 @@
                             <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
                         </ul>
                     </div>
+                </div>
+            </div>
         </section>
+
     </div>
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/jquery.dropotron.min.js"></script>
@@ -114,16 +119,18 @@
             var user_id = document.getElementById("user_id").value;
             var ticket_id = document.getElementById("ticket_id").value;
             var event_id = document.getElementById("event_id").value;
-            var type = document.getElementById("type").value;
+            var decision = document.getElementById("decision").value;
+            var type = document.getElementById("type").value;  // Get the value of the hidden input field for type
 
             var data = {
                 user_id: user_id,
                 ticket_id: ticket_id,
                 event_id: event_id,
-                type: type
+                decision: decision,
+                type: type  // Add type to the data
             };
 
-            fetch("http://host.docker.internal:5100/process_refund", {
+            fetch("http://localhost:5100/process_refund", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -145,4 +152,5 @@
         }
     </script>
 </body>
+
 </html>
