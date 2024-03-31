@@ -1,0 +1,182 @@
+{
+	"info": {
+		"_postman_id": "2444d8c7-31d7-4917-bd3a-6b4d19de3988",
+		"name": "Verify Tickets Composite Microservice",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32333117",
+		"_collection_link": "https://lively-resonance-755536.postman.co/workspace/New-Team-Workspace~544640a6-ead2-4658-bdd5-f275cf2bc35a/collection/32333117-2444d8c7-31d7-4917-bd3a-6b4d19de3988?action=share&source=collection_link&creator=32333117"
+	},
+	"item": [
+		{
+			"name": "Verification - Check if ticket redeemed & QR Code matches",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:5001/get-ticket-status?ticket_id=301",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "5001",
+					"path": [
+						"get-ticket-status"
+					],
+					"query": [
+						{
+							"key": "ticket_id",
+							"value": "301"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User - Post age_verified & add current_tickets",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"ticket_id\" : \"301\", \"UEN_id\" : \"T15LP0010D\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5001/update-verified",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"update-verified"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Singpassapi - Get age of user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5010/verify-age?UEN=T15LP0010D&UNIFIN=F1612345P&ticket_id=301",
+					"host": [
+						"localhost"
+					],
+					"port": "5010",
+					"path": [
+						"verify-age"
+					],
+					"query": [
+						{
+							"key": "UEN",
+							"value": "T15LP0010D"
+						},
+						{
+							"key": "UNIFIN",
+							"value": "F1612345P"
+						},
+						{
+							"key": "ticket_id",
+							"value": "301"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Ticket w/o Singpass - Complete Process",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"ticket_id\": \"301\", \"qr_code\": \"abc\"}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5300/verify_ticket",
+					"host": [
+						"localhost"
+					],
+					"port": "5300",
+					"path": [
+						"verify_ticket"
+					],
+					"query": [
+						{
+							"key": "ticket_id",
+							"value": "301",
+							"disabled": true
+						},
+						{
+							"key": "UEN_id",
+							"value": "T15LP0010D",
+							"disabled": true
+						},
+						{
+							"key": "UNIFIN_id",
+							"value": "F1612345P",
+							"disabled": true
+						},
+						{
+							"key": "qr_code",
+							"value": "abc",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Ticket - Complete Process",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"ticket_id\": \"301\", \"qr_code\": \"abc\", \"UEN\": \"T15LP0010D\", \"UNIFIN\": \"F1612345P\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5300/verify_ticket",
+					"host": [
+						"localhost"
+					],
+					"port": "5300",
+					"path": [
+						"verify_ticket"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
