@@ -133,7 +133,7 @@ def create_ticket():
             'ticket_redeemed': False,
             'payment_id': "",
             "charge_id": "",
-            "qr_code": qr_code_base64,
+            "qr_code": qr_code_base64.replace("/", ""),
         })
 
         return jsonify(
