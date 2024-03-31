@@ -183,22 +183,22 @@ services:
       - kong-net
     environment:
       PYTHONUNBUFFERED: 1
-    # ports:
-    #   - "5003:5003"
+    ports:
+      - "5003:5003"
 
   ###################################
   # Event: The event2 microservice
   ###################################
-  event2:
-    build:
-      context: ./
-      dockerfile: event.Dockerfile
-    image: keugene0/event:ESD
-    restart: always
-    networks:
-      - kong-net
-    environment:
-      PYTHONUNBUFFERED: 1
+  # event2:
+  #   build:
+  #     context: ./
+  #     dockerfile: event.Dockerfile
+  #   image: keugene0/event:ESD
+  #   restart: always
+  #   networks:
+  #     - kong-net
+  #   environment:
+  #     PYTHONUNBUFFERED: 1
     # ports:
     #   - "5003:5003"
 
