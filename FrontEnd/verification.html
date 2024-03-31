@@ -23,29 +23,6 @@
             <nav id="nav">
                 <ul>
                     <li class="current"><a href="event.html">Home</a></li>
-                    <li>
-                        <a href="#">View More</a>
-                        <ul>
-                            <li><a href="#">Lorem ipsum dolor</a></li>
-                            <li><a href="#">Magna phasellus</a></li>
-                            <li><a href="#">Etiam dolore nisl</a></li>
-                            <li>
-                                <a href="#">Phasellus consequat</a>
-                                <ul>
-                                    <li><a href="#">Magna phasellus</a></li>
-                                    <li><a href="#">Etiam dolore nisl</a></li>
-                                    <li><a href="#">Veroeros feugiat</a></li>
-                                    <li><a href="#">Nisl sed aliquam</a></li>
-                                    <li><a href="#">Dolore adipiscing</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Veroeros feugiat</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="left-sidebar.html">Left Sidebar</a></li>
-                    <li><a href="right-sidebar.html">Right Sidebar</a></li>
-                    <li><a href="account.html">Account</a></li>
-                </ul>
             </nav>
         </section>
 
@@ -54,16 +31,28 @@
             <div class="container">
                 <div class="row">
                     <div class="col-6 offset-3">
-                        <form id="loginForm">
-                            <label for="ticket_id">Ticket ID:</label>
-                            <input type="text" id="ticket_id" name="ticket_id" required>
-                            
-                            <label for="qr_code">QR Code:</label>
-                            <input type="text" id="qr_code" name="qr_code" required>
+                        <form id="login">
+                            <div class="form-group">
+                                <label for="UEN">UEN:</label>
+                                <input type="text" class="form-control" id="UEN" name="UEN" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="UNIFIN">UNIFIN:</label>
+                                <input type="text" class="form-control" id="UNIFIN" name="UNIFIN" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qr_code">QR Code:</label>
+                                <input type="text" class="form-control" id="qr_code" name="qr_code" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ticket_id">Ticket ID:</label>
+                                <input type="text" class="form-control" id="ticket_id" name="ticket_id" required>
+                            </div>
                             <br>
-                            <button type="button" onclick="verifyTicket()">Verify Ticket</button>
+                            <button type="button" id="loginButton">Login</button>
                         </form>
                         <br>
+                        <a href="verificationnosp.html">Login without Singpass</a>
                     </div>
                 </div>
             </div>
@@ -112,40 +101,45 @@
                             <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
                         </ul>
                     </div>
-                    </div>
-                    </div>
-                    </section>
     </div>
-
     <script>
-    function verifyTicket() {
-        const ticketId = document.getElementById("ticket_id").value;
-        const qrCode = document.getElementById("qr_code").value;
-
-        fetch('http://localhost:5300/verify_ticket', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                ticket_id: ticketId,
-                qr_code: qrCode
+        document.getElementById('loginButton').addEventListener('click', function() {
+            const UEN = document.getElementById('UEN').value;
+            const UNIFIN = document.getElementById('UNIFIN').value;
+            const qr_code = document.getElementById('qr_code').value;
+            const ticket_id = document.getElementById('ticket_id').value;
+    
+            const userData = {
+                UEN: UEN,
+                UNIFIN: UNIFIN,
+                qr_code: qr_code,
+                ticket_id: ticket_id
+            };
+    
+            fetch('http://localhost:5300/verify_ticket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                window.location.href = 'unsuccessfully_verified_page.html';
-                alert('Database update successful!');  // Alert for successful update
-            } else {
-                window.location.href = 'unsuccessfully_verified_page.html';
-                alert(`Database update failed: ${data.error}`);  // Alert for failed update
-            }
-        })
-        .catch(error => {
-            alert(`An error occurred: ${error}`);  // Alert for catch block
+            .then(response => {
+                console.log('Response:', response);
+                return response.json();
+            })
+            .then(result => {
+                if (result.message === 'Ticket verification and update completed successfully') {
+                    window.location.href = 'successfully_verified_page.html'
+                } else {
+                    window.location.href = 'unsuccessfully_verified_page.html'
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                window.location.href = 'unsuccessfully_verified_page.html'
+            });
         });
-    }
     </script>
 </body>
+
 </html>

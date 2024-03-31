@@ -1,0 +1,128 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+    <title>Login - Event</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+
+</head>
+
+<body class="homepage is-preload">
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <section id="header">
+
+            <!-- Logo -->
+            <h1><a href="event.html">TicketMaster</a></h1>
+
+            <!-- Nav -->
+            <nav id="nav">
+                <ul>
+                    <li class="current"><a href="event.html">Home</a></li>
+            </nav>
+        </section>
+
+        <!-- Main -->
+        <section id="main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-6 offset-3">
+                        <form id="loginForm">
+                            <label for="ticket_id">Ticket ID:</label>
+                            <input type="text" id="ticket_id" name="ticket_id" required>
+                            
+                            <label for="qr_code">QR Code:</label>
+                            <input type="text" id="qr_code" name="qr_code" required>
+                            <br>
+                            <button type="button" onclick="verifyTicket()">Verify Ticket</button>
+                        </form>
+                        <br>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <section id="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-4 col-12-medium">
+                        <section>
+                            <header>
+                                <h2>TicketMaster</h2>
+                            </header>
+                            <ul class="social">
+                                <li><a class="icon brands fa-facebook-f" href="#"><span class="label">Facebook</span></a></li>
+                                <li><a class="icon brands fa-twitter" href="#"><span class="label">Twitter</span></a></li>
+                                <li><a class="icon brands fa-dribbble" href="#"><span class="label">Dribbble</span></a></li>
+                                <li><a class="icon brands fa-tumblr" href="#"><span class="label">Tumblr</span></a></li>
+                                <li><a class="icon brands fa-linkedin-in" href="#"><span class="label">LinkedIn</span></a></li>
+                            </ul>
+                        </section>
+                    </div>
+                    <section>
+                        <h3>Address</h3>
+                        <p>
+                            81 Victoria St<br />
+                            Singapore 188065
+                        </p>
+                    </section>
+                    <section>
+                        <h3>Mail</h3>
+                        <p><a href="#">ticketmaster.support@gmail.com</a></p>
+                    </section>
+                    <section>
+                        <h3>Phone</h3>
+                        <p>(+65) 9999 9999</p>
+                    </section>
+                </div>
+                <div class="col-12">
+
+                    <!-- Copyright -->
+                    <div id="copyright">
+                        <ul class="links">
+                            <li>&copy; Untitled. All rights reserved.</li>
+                            <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                        </ul>
+                    </div>
+                    </div>
+                    </div>
+                    </section>
+    </div>
+
+    <script>
+    function verifyTicket() {
+        const ticketId = document.getElementById("ticket_id").value;
+        const qrCode = document.getElementById("qr_code").value;
+
+        fetch('http://localhost:5300/verify_ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                qr_code: qrCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                window.location.href = 'unsuccessfully_verified_page.html';
+                alert('Database update successful!');  // Alert for successful update
+            } else {
+                window.location.href = 'unsuccessfully_verified_page.html';
+                alert(`Database update failed: ${data.error}`);  // Alert for failed update
+            }
+        })
+        .catch(error => {
+            alert(`An error occurred: ${error}`);  // Alert for catch block
+        });
+    }
+    </script>
+</body>
+</html>

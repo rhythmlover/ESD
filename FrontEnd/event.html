@@ -17,8 +17,12 @@
 
     <script>
 		let account_type;
+        function setUserId(id) {
+            localStorage.setItem('user_id', id);
+        }
+
         function fetchEvents(event_id) {
-            axios.get(`http://localhost:8000/api/v1/events`)
+            axios.get(`http://localhost:5003/events`)
                 .then(response => {
                     console.log('Response:', response.data.data);
                     const events = response.data.data;
@@ -74,7 +78,8 @@
         }
 
 		function fetchUserType() {
-			return axios.get(`http://localhost:5001/users/101`)
+            const user_id = localStorage.getItem('user_id');
+			return axios.get(`http://localhost:5001/users/${user_id}`)
 				.then(response => {
 					account_type = response.data.data.account_type;
 					console.log('User Account Type:', account_type);
@@ -111,6 +116,7 @@
 			<!-- Nav -->
 			<nav id="nav">
 				<ul>
+                    <li class="current"><a href="login.html">Login</a></li>
 					<li class="current"><a href="event.html">Home</a></li>
 					<li class="current" id="attendance_history">
 						<a href="user_attendance.html"></a>
@@ -133,7 +139,11 @@
 						console.log('Setting link for user');
 						attendanceLink.textContent = 'User Attendance History';
 						attendanceLink.href = 'user_attendance.html';
-					}
+					} else if (account_type === 'bouncer') {
+                        console.log('Setting link for bouncer');
+						attendanceLink.textContent = 'Verification';
+						attendanceLink.href = 'verification.html';
+                    }
 				});
 			</script>
 
