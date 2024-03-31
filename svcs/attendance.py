@@ -61,6 +61,7 @@ def add_user_to_event_attendance(event_id):
     parameters:
         - in: path
           name: event_id
+          user_id: user_id
           required: true
           description: The ID of the event to add users into
           schema:
@@ -149,7 +150,7 @@ def get_user_event_attendance_history(user_id):
     return jsonify(
         {
             "code": 404,
-            "message": "No attendance for this event found."
+            "message": "User ID not found."
         }
     ), 404
 

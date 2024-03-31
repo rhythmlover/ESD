@@ -146,7 +146,7 @@ def create_ticket():
         return jsonify(
             {
                 "code": 500,
-                "message": "An error occurred while submitting the refund request. " + str(e)
+                "message": "An error occurred during ticket creation. " + str(e)
             }
         ), 500
     
