@@ -117,26 +117,34 @@
 					<li class="current"><a href="event.html">Home</a></li>
 					<li class="current" id="attendance_history">
 						<a href="user_attendance.html"></a>
+                    </li>
+                    <li class="current" id="refund_admin">
+                        <a href="refund.html"></a>
 					</li>
 				</ul>
 			</nav>
 
 			<script>
-				fetchUserType().then(account_type => {
-					const attendanceLink = document.querySelector('#attendance_history a');
+                fetchUserType().then(account_type => {
+                    const attendanceLink = document.querySelector('#attendance_history a');
+                    const refundLink = document.querySelector('#refund_admin a');
 
-					if (account_type === 'admin') {
-						console.log('Setting link for admin');
-						attendanceLink.textContent = 'Event Attendance History';
-						attendanceLink.href = 'event_attendance.html';
+                    if (account_type === 'admin') {
+                        console.log('Setting links for admin');
+                        attendanceLink.textContent = 'Event Attendance History';
+                        attendanceLink.href = 'event_attendance.html';
+                        refundLink.textContent = 'Process Refunds';
+                        refundLink.href = 'refund.html';
 					} else if (account_type === 'user') {
 						console.log('Setting link for user');
 						attendanceLink.textContent = 'User Attendance History';
 						attendanceLink.href = 'user_attendance.html';
+                        refundLink.style.display = 'none';
 					} else if (account_type === 'bouncer') {
                         console.log('Setting link for bouncer');
 						attendanceLink.textContent = 'Verification';
 						attendanceLink.href = 'verification.html';
+                        refundLink.style.display = 'none';
                     }
 				});
 			</script>

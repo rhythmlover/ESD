@@ -128,15 +128,17 @@
                 return response.json();
             })
             .then(result => {
-                if (result.message === 'Ticket verification and update completed successfully') {
+                console.log(ticket_id)
+                console.log('Result:', result); // Add this line
+                if (result.message === `Ticket verification and update completed successfully`) {
                     window.location.href = 'successfully_verified_page.html'
                 } else {
-                    window.location.href = 'unsuccessfully_verified_page.html'
+                    // window.location.href = 'unsuccessfully_verified_page.html'
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                window.location.href = 'unsuccessfully_verified_page.html'
+                // window.location.href = 'unsuccessfully_verified_page.html'
             });
         });
     </script>

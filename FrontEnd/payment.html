@@ -112,7 +112,7 @@
         });
 
         function fetchUserID() {
-            return axios.get(`http://localhost:5001/users/101`)
+    return axios.get(`http://localhost:5001/users/102`)
         .then(response => {
             const user_id = response.data.data.user_id;
             console.log('User ID:', user_id); // Log the user ID
@@ -123,6 +123,7 @@
             throw new Error("Failed to fetch user ID. Please try again later.");
         });
 }
+
 
         function purchaseTicket() {
             var user_id = document.getElementById("user_id").value;

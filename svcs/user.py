@@ -70,7 +70,7 @@ def update_verified():
             # Perform the transaction to append the ticket_id to the user's current_tickets
             transaction_result = append_ticket_to_user(user_id, ticket_id)
             if transaction_result:
-                return jsonify({"message": f"Ticket {ticket_id} verified and added to user {user_id}."}), 200
+                return jsonify({"message": f"Ticket {ticket_id} verified and updated"}), 201
             else:
                 return jsonify({"error": "Failed to update user's current_tickets."}), 500
         else:
