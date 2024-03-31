@@ -294,14 +294,19 @@ def update_payment_id(ticket_id):
 
 def generate_qr_code(ticket_data):
     try:
-        # Generate unique QR code based on user id, event id and ticket id
-        qr_data = f"{ticket_data['user_id']}|{ticket_data['event_id']}|{ticket_data['ticket_id']}"
+        # Generate unique QR code based on user id, event id, and ticket id
+        qr_data = f"{ticket_data['user_id']}{ticket_data['event_id']}{ticket_data['ticket_id']}"
+        
+        # Remove '/' and '&' characters from the QR data
+        qr_data = qr_data.replace('/', '').replace('&', '')
+        
         qr = pyqrcode.create(qr_data)
         qr_code_base64 = qr.png_as_base64_str(scale=8)
         return qr_code_base64
     except Exception as e:
         print("Error generating QR code:", str(e))
         return None
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)

@@ -297,6 +297,9 @@ def get_user_data(user_id):
     
 def generate_qr_code_image(qr_code_data):
     try:
+        # Sanitize data: remove '/' characters
+        qr_code_data = qr_code_data.replace('/', '')
+
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -310,6 +313,7 @@ def generate_qr_code_image(qr_code_data):
     except Exception as e:
         print(f"Error generating QR code: {e}")
         return None
+
 
 def convert_image_to_base64(image):
     try:
