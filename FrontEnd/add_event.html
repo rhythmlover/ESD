@@ -132,9 +132,9 @@
         function submitEvent() {
             var event_id = document.getElementById("event_id").value;
             var event_name = document.getElementById("event_name").value;
-            var event_datetime = document.getElementById("event_datetime").value;
+            var event_datetime = formatDateTime(document.getElementById("event_datetime").value);
             var event_price = document.getElementById("event_price").value;
-            var event_image = document.getElementById("event_name").value;
+            var event_image = document.getElementById("event_image").value;
             var event_description = document.getElementById("event_description").value;
 
             fetch('http://localhost:5003/events/' + event_id, {
@@ -169,6 +169,22 @@
             event.preventDefault();
             submitEvent();
         });
+
+    function formatDateTime(datetime) {
+        const date = new Date(datetime);
+        const options = { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+        const formattedDate = date.toLocaleDateString('en-US', options);
+
+        const formattedDateTime = formattedDate.slice(0, -2);
+
+        const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        const finalFormattedDateTime = `${formattedDateTime}`;
+
+        return finalFormattedDateTime;
+    }
+
+
+
     </script>
 
 </body>

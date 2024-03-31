@@ -41,10 +41,8 @@
 
 						let buttonHtml = '';
 						if (isEventPast) {
-							// Event has passed, show "View Reviews" button
 							buttonHtml = `<li><a href="#" class="button alt" onclick="viewReviews('${event.event_id}')">View Reviews</a></li>`;
 						} else {
-							// Event is in the future, show "Purchase Ticket" button
 							buttonHtml = `<li><a href="payment.html" class="button alt">Purchase Ticket</a></li>`;
 						}
 
@@ -99,7 +97,6 @@
                         window.location.href = `user_event_id_${event_id}_review.html`;
                     }
                 }
-        // Fetch events when the page loads
 		fetchUserType().then(() => fetchEvents());
     </script>
 </head>
@@ -125,12 +122,9 @@
 			</nav>
 
 			<script>
-				// Fetch user type and then dynamically update the "Attendance History" link
 				fetchUserType().then(account_type => {
-					// Find the anchor element for attendance history
 					const attendanceLink = document.querySelector('#attendance_history a');
 
-					// Update the link text and href based on the user's account type
 					if (account_type === 'admin') {
 						console.log('Setting link for admin');
 						attendanceLink.textContent = 'Event Attendance History';
@@ -154,7 +148,6 @@
                     <p>View events happening now</p>
                 </header>
 				<script>
-					// Check if the account type is admin
 					fetchUserType().then(() => {
 					if (account_type === 'admin') {
 						document.getElementById('banner').innerHTML += '<ul class="actions special"><li><a href="add_event.html" class="button primary">Add Event</a></li></ul>';
