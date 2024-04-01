@@ -7,12 +7,13 @@ The business scenario covers a ticketing service for clubs aimed at streamlining
 ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-e37b3b.svg?style=for-the-badge&logo=firebase&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
+![Flask](https://img.shields.io/badge/flask-28a8a2.svg?style=for-the-badge&logo=flask&logoColor=white)
 ![Kong](https://img.shields.io/badge/kong-0a473a.svg?style=for-the-badge&logo=kong&logoColor=white)
 
 ## Notes
 - All data is being stored in firebase, no SQL files are required to run.
-- For the email service, we have implemented it such that the confirmation emails are only sent to our team's test emails. If you wish to test our email service, please contact any of our team members and we will add you accordingly to our internal database.
+- For the email service, we implemented it such that the confirmation emails are only sent to our team's test emails. If you wish to test our email service, please contact any of our team members and we will add you accordingly into our firebase database.
+- For the payment service, we used a fixed account to handle all our payments and refunds. Therefore, there is no need to key any payment account details when purchasing a ticket or processing a refund in our website. If you wish to gain access to see our stripe's payment and refund logs, please contact any of our team members for further assistance.
 
 ## Microservices setup
 ```
